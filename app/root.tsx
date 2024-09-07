@@ -10,6 +10,7 @@ import stylesheet from "~/tailwind.css?url";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
+  { rel: "icon", href: "/favicon.ico" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -21,7 +22,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body className="flex h-full flex-col">
+      <body>
         {children}
         <ScrollRestoration />
         <Scripts />
