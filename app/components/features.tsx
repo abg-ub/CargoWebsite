@@ -9,21 +9,21 @@ const features = [
     name: "Real-time Shipment Tracking",
     description:
       "Stay updated with live tracking information for all estimated arrival of your packages with real-time updates.",
-    href: "#",
+    href: "/services",
     icon: MapPinIcon,
   },
   {
     name: "Customs Clearance Assistance",
     description:
       "We simplify the customs process by handling all the paperwork and ensuring your shipments comply with international regulations, minimizing delays and ensuring smooth delivery.",
-    href: "#",
+    href: "/services",
     icon: ShieldCheckIcon,
   },
   {
     name: "Multi-Carrier Shipping",
     description:
       "Choose from multiple carriers to find the best shipping option for your needs, balancing speed, reliability, and cost-efficiency for every shipment.",
-    href: "#",
+    href: "/services",
     icon: TruckIcon,
   },
 ];
