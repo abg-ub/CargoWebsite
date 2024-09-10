@@ -64,7 +64,7 @@ export default function Faq() {
             for? Visit our{" "}
             <Link
               to="/contact"
-              className="font-semibold text-primary hover:text-indigo-500"
+              className="font-semibold text-primary hover:text-primary/70"
             >
               contact page
             </Link>{" "}
