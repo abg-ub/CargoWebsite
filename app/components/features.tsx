@@ -3,6 +3,7 @@ import {
   MapPinIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
+import { Link } from "@remix-run/react";
 
 const features = [
   {
@@ -92,12 +93,12 @@ export default function Features() {
                 <dd className="mt-1 flex flex-auto flex-col text-base leading-7 text-gray-600">
                   <p className="flex-auto">{feature.description}</p>
                   <p className="mt-6">
-                    <a
-                      href={feature.href}
+                    <Link
+                      to={feature.href}
                       className="text-sm font-semibold leading-6 text-primary"
                     >
                       Learn more <span aria-hidden="true">→</span>
-                    </a>
+                    </Link>
                   </p>
                 </dd>
               </div>
