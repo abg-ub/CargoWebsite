@@ -1,6 +1,5 @@
 import {
   isRouteErrorResponse,
-  Link,
   Links,
   Meta,
   Outlet,
@@ -12,6 +11,7 @@ import type { LinksFunction } from "@remix-run/node";
 import stylesheet from "~/tailwind.css?url";
 import Header from "~/components/header";
 import Footer from "~/components/footer";
+import PageNotFound from "~/components/page-not-found";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
@@ -20,14 +20,14 @@ export const links: LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="h-full">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
       </head>
-      <body>
+      <body className="h-full">
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -51,52 +51,20 @@ export function ErrorBoundary() {
 
   if (isRouteErrorResponse(error)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-8">
-        <div className="max-w-md text-center bg-white shadow-lg rounded-lg p-6">
-          <h1 className="text-4xl font-semibold text-red-500">
-            {error.status}
-          </h1>
-          <h2 className="text-xl font-medium text-gray-700 mt-2">
-            {error.statusText}
-          </h2>
-          <p className="text-gray-600 mt-4">
-            It seems something went wrong. Please try again or contact support
-            if the issue persists.
-          </p>
-          {error.data?.message && (
-            <p className="mt-4 text-red-500 font-bold">{error.data.message}</p>
-          )}
-          <Link
-            to="/"
-            className="mt-6 inline-block px-6 py-2 text-white bg-primary rounded-full hover:bg-primary-dark transition-colors"
-          >
-            Back to Home
-          </Link>
-        </div>
-      </div>
+      <PageNotFound
+        errorCode={error.status.toString()}
+        title={error.statusText}
+        message={error.data.message}
+      />
     );
   }
 
   let errorMessage = "An unexpected error occurred";
+  let errorTitle = "Unexpected Error";
   if (error instanceof Error) {
     errorMessage = error.message;
+    errorTitle = error.name;
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-8">
-      <div className="max-w-md text-center bg-white shadow-lg rounded-lg p-6">
-        <h1 className="text-4xl font-semibold text-red-500">Whoops!</h1>
-        <p className="text-gray-600 mt-4">
-          Something unexpected happened. We&apos;re working to fix it.
-        </p>
-        <p className="mt-4 text-red-500 font-bold">{errorMessage}</p>
-        <Link
-          to="/"
-          className="mt-6 inline-block px-6 py-2 text-white bg-primary rounded-full hover:bg-primary-dark transition-colors"
-        >
-          Back to Home
-        </Link>
-      </div>
-    </div>
-  );
+  return <PageNotFound title={errorTitle} message={errorMessage} />;
 }

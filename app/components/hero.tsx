@@ -33,7 +33,7 @@ export default function Hero() {
             strokeWidth={0}
           />
         </svg>
-        <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:flex lg:items-center lg:gap-x-10 lg:px-8 lg:py-40">
+        <div className="mx-auto max-w-7xl px-6 py-16 sm:py-32 lg:flex lg:items-center lg:gap-x-10 lg:px-8 lg:py-24">
           <div className="mx-auto max-w-2xl lg:mx-0 lg:flex-auto">
             <h1 className="mt-10 max-w-lg text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
               Shipping Solutions That Move Your Business Forward
@@ -45,15 +45,15 @@ export default function Hero() {
             </p>
 
             <div className="mt-10 flex items-center gap-x-6">
-              <Link to="#" className="btn-primary">
-                Get started
+              <Link to="/contact" className="btn-primary">
+                Contact us
               </Link>
-              <a
-                href="#"
+              <Link
+                to="#"
                 className="text-sm font-semibold leading-6 text-gray-900"
               >
                 Learn more <span aria-hidden="true">→</span>
-              </a>
+              </Link>
             </div>
           </div>
           <div className="mt-16 sm:mt-24 lg:mt-0 lg:flex-shrink-0 lg:flex-grow">
