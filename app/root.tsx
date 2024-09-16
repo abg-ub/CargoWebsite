@@ -7,6 +7,7 @@ import {
   ScrollRestoration,
   useLoaderData,
   useRouteError,
+  useRouteLoaderData,
 } from "@remix-run/react";
 
 import {
@@ -43,10 +44,16 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 export const loader: LoaderFunction = async () => {
   const globalData = await getGlobalData();
-  return json(globalData);
+  return json({
+    globalData: globalData,
+    ENV: {
+      STRAPI_URL: process.env.STRAPI_URL,
+    },
+  });
 };
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const data = useRouteLoaderData<typeof loader>("root");
   return (
     <html lang="en" className="h-full">
       <head>
@@ -57,6 +64,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body className="h-full">
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
+          }}
+        />
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -65,12 +77,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const data = useLoaderData<typeof loader>();
+  const { globalData } = useLoaderData<typeof loader>();
   return (
     <>
-      <Header {...data.header} />
+      <Header {...globalData.header} />
       <Outlet />
-      <Footer {...data.footer} />
+      <Footer {...globalData.footer} />
     </>
   );
 }

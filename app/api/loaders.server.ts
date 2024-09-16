@@ -1,6 +1,8 @@
 import qs from "qs";
 import { flattenStrapiResponse } from "~/utils/utils";
-import { baseUrl } from "~/utils/helper-data";
+import * as process from "node:process";
+
+const baseUrl = process.env.STRAPI_URL;
 
 async function fetchData(url: string) {
   try {
