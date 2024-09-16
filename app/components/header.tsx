@@ -1,10 +1,16 @@
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Dialog, DialogPanel } from "@headlessui/react";
 import { useState } from "react";
-import { navItems } from "~/lib/helper-data";
-import { Link } from "@remix-run/react";
 
-export default function Header() {
+import { Link } from "@remix-run/react";
+import { HeaderProps } from "~/types";
+import { baseUrl } from "~/utils/helper-data";
+
+export default function Header({
+  logoLink,
+  navItems,
+  buttonLink,
+}: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   return (
     <header className="absolute inset-x-0 top-0 z-50 max-w-7xl mx-auto">
@@ -13,9 +19,13 @@ export default function Header() {
         className="flex items-center justify-between p-6 lg:px-8"
       >
         <div className="flex lg:flex-1">
-          <Link to="/" className="-m-1.5 p-1.5">
-            <span className="sr-only">Your Company</span>
-            <img alt="" src="/images/logo.png" className="h-10 w-auto" />
+          <Link to={logoLink.href} className="-m-1.5 p-1.5">
+            <span className="sr-only">Wakhan Line</span>
+            <img
+              alt={logoLink.image.alternativeText}
+              src={baseUrl + logoLink.image.url}
+              className="h-10 w-auto"
+            />
           </Link>
         </div>
         <div className="flex lg:hidden">
@@ -29,19 +39,20 @@ export default function Header() {
           </button>
         </div>
         <div className="hidden lg:flex lg:gap-x-12">
-          {navItems.map((item) => (
-            <Link
-              key={item.name}
-              to={item.href}
-              className="text-sm font-semibold leading-6 text-gray-900"
-            >
-              {item.name}
-            </Link>
-          ))}
+          {navItems &&
+            navItems.map((item) => (
+              <Link
+                key={item.id}
+                to={item.href}
+                className="text-sm font-semibold leading-6 text-gray-900"
+              >
+                {item.title}
+              </Link>
+            ))}
         </div>
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-          <Link to="/track-order" className="btn-primary">
-            Track Order
+          <Link to={buttonLink.href} className="btn-primary">
+            {buttonLink.title}
           </Link>
         </div>
       </nav>
@@ -53,9 +64,17 @@ export default function Header() {
         <div className="fixed inset-0 z-50" />
         <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
           <div className="flex items-center justify-between">
-            <Link to="/" className="-m-1.5 p-1.5">
-              <span className="sr-only">Your Company</span>
-              <img alt="" src="/images/logo.png" className="h-10 w-auto" />
+            <Link
+              to="/"
+              className="-m-1.5 p-1.5"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span className="sr-only">Wakhan Line</span>
+              <img
+                alt={logoLink.image.alternativeText}
+                src={baseUrl + logoLink.image.url}
+                className="h-10 w-auto"
+              />
             </Link>
             <button
               type="button"
@@ -69,22 +88,24 @@ export default function Header() {
           <div className="mt-6 flow-root">
             <div className="-my-6 divide-y divide-gray-500/10">
               <div className="space-y-2 py-6">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
-                  >
-                    {item.name}
-                  </Link>
-                ))}
+                {navItems &&
+                  navItems.map((item) => (
+                    <Link
+                      key={item.id}
+                      to={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                    >
+                      {item.title}
+                    </Link>
+                  ))}
               </div>
               <div className="py-6">
                 <Link
-                  to="/track-order"
+                  to={buttonLink.href}
                   className="btn-primary block text-center"
                 >
-                  Track Order
+                  {buttonLink.title}
                 </Link>
               </div>
             </div>

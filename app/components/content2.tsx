@@ -1,14 +1,12 @@
-import { Link } from "@remix-run/react";
-import { FeaturesProps } from "~/types";
-import { baseUrl } from "~/utils/helper-data";
+import { Content2Props } from "~/types";
 
-export default function Features({
+export default function Content2({
   title,
   description,
-  features,
-}: FeaturesProps) {
+  sections,
+}: Content2Props) {
   return (
-    <div className="relative isolate bg-white py-24 sm:py-32 overflow-hidden rounded-lg">
+    <div className="relative isolate bg-white py-24 sm:py-32">
       <svg
         aria-hidden="true"
         className="absolute inset-0 -z-10 h-full w-full fill-primary/5 stroke-neutral-950/5 [mask-image:linear-gradient(to_bottom_left,white_40%,transparent_50%)]"
@@ -61,7 +59,6 @@ export default function Features({
           </pattern>
         </defs>
       </svg>
-
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl lg:mx-0">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
@@ -69,47 +66,14 @@ export default function Features({
           </h2>
           <p className="mt-6 text-lg leading-8 text-gray-600">{description}</p>
         </div>
-        <div className="mt-20 flow-root">
-          <dl
-            className="isolate -mt-8 grid max-w-sm grid-cols-1 gap-y-8 divide-y
-          sm:mx-auto lg:-mx-8 lg:mt-0 lg:max-w-none lg:grid-cols-3 lg:divide-x lg:divide-y-0 xl:-mx-4"
-          >
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="flex flex-col pt-8 lg:px-8 lg:pt-0 xl:px-14"
-              >
-                <dt className="text-base font-semibold leading-7 text-gray-900">
-                  <div className="mb-6 flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-                    <div
-                      className="h-6 w-6 bg-white"
-                      style={{
-                        mask: `url(${
-                          baseUrl + feature.logo.url
-                        }) no-repeat center`,
-                        WebkitMask: `url(${
-                          baseUrl + feature.logo.url
-                        }) no-repeat center`,
-                      }}
-                    />
-                  </div>
-                  {feature.name}
-                </dt>
-                <dd className="mt-1 flex flex-auto flex-col text-base leading-7 text-gray-600">
-                  <p className="flex-auto">{feature.description}</p>
-                  <p className="mt-6">
-                    <Link
-                      to={feature.href}
-                      className="text-sm font-semibold leading-6 text-primary"
-                    >
-                      Learn more <span aria-hidden="true">→</span>
-                    </Link>
-                  </p>
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
+        <dl className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 text-base leading-7 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+          {sections.map((feature, index) => (
+            <div key={index}>
+              <dt className="font-semibold text-gray-900">{feature.title}</dt>
+              <dd className="mt-1 text-gray-600">{feature.description}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </div>
   );

@@ -1,68 +1,19 @@
-import { cn } from "~/lib/utils";
+import { TestimonialsProps } from "~/types";
+import { baseUrl } from "~/utils/helper-data";
+import { cn, splitTestimonials } from "~/utils/utils";
 
-const featuredTestimonial = {
-  body: "Our experience with Wakhan Lines has been exceptional. Their timely deliveries and unmatched customer service set them apart in the shipping industry. We rely on them for all our logistics needs, and they never disappoint.",
-  author: {
-    name: "John Doe",
-    handle: "johndoe",
-    imageUrl:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    logoUrl: "https://tailwindui.com/img/logos/savvycal-logo-gray-900.svg",
-  },
-};
+export default function Testimonials({
+  title,
+  description,
+  testimonies,
+}: TestimonialsProps) {
+  const featuredTestimonial = testimonies.find(
+    (testimony) => testimony.isFeatured
+  );
 
-const testimonials = [
-  [
-    [
-      {
-        body: "Wakhan Lines ensured that our shipments were delivered on time, every time. Their professionalism and attention to detail made a huge difference for our business.",
-        author: {
-          name: "Michael Scott",
-          handle: "michaelscott",
-          imageUrl:
-            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-        },
-      },
-    ],
-    [
-      {
-        body: "The efficiency and reliability of Wakhan Lines have saved us countless hours in managing our logistics. Their tracking system is top-notch.",
-        author: {
-          name: "Jim Halpert",
-          handle: "jimhalpert",
-          imageUrl:
-            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-        },
-      },
-    ],
-  ],
-  [
-    [
-      {
-        body: "Their customer support team is amazing! We had a last-minute shipment that needed special attention, and Wakhan Lines handled it seamlessly.",
-        author: {
-          name: "Tom Cruise",
-          handle: "tomcruise",
-          imageUrl:
-            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-        },
-      },
-    ],
-    [
-      {
-        body: "If you're in need of fast, secure, and reliable shipping services, Wakhan Lines should be your go-to. They've been a game-changer for us.",
-        author: {
-          name: "Bruce Wayne",
-          handle: "brucewayne",
-          imageUrl:
-            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-        },
-      },
-    ],
-  ],
-];
+  const testimonials = testimonies.filter((testimony) => !testimony.isFeatured);
+  const testimonialColumns = splitTestimonials(testimonials);
 
-export default function Testimonials() {
   return (
     <div className="relative isolate bg-white pb-32 pt-24 sm:pt-32">
       <div
@@ -92,76 +43,77 @@ export default function Testimonials() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-xl text-center">
           <h2 className="text-lg font-semibold leading-8 tracking-tight text-primary">
-            Testimonials
+            {title}
           </h2>
           <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            We have worked with thousands of amazing people
+            {description}
           </p>
         </div>
         <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 grid-rows-1 gap-8 text-sm leading-6 text-gray-900 sm:mt-20 sm:grid-cols-2 xl:mx-0 xl:max-w-none xl:grid-flow-col xl:grid-cols-4">
-          <figure className="rounded-2xl bg-white shadow-lg ring-1 ring-gray-900/5 sm:col-span-2 xl:col-start-2 xl:row-end-1">
-            <blockquote className="p-6 text-lg font-semibold leading-7 tracking-tight text-gray-900 sm:p-12 sm:text-xl sm:leading-8">
-              <p>{`“${featuredTestimonial.body}”`}</p>
-            </blockquote>
-            <figcaption className="flex flex-wrap items-center gap-x-4 gap-y-4 border-t border-gray-900/10 px-6 py-4 sm:flex-nowrap">
-              <img
-                alt=""
-                src={featuredTestimonial.author.imageUrl}
-                className="h-10 w-10 flex-none rounded-full bg-gray-50"
-              />
-              <div className="flex-auto">
-                <div className="font-semibold">
-                  {featuredTestimonial.author.name}
+          {/* Featured Testimonial */}
+          {featuredTestimonial && (
+            <figure className="rounded-2xl bg-white shadow-lg ring-1 ring-gray-900/5 sm:col-span-2 xl:col-start-2 xl:row-end-1">
+              <blockquote className="p-6 text-lg font-semibold leading-7 tracking-tight text-gray-900 sm:p-12 sm:text-xl sm:leading-8">
+                <p>{featuredTestimonial.text}</p>
+              </blockquote>
+              <figcaption className="flex flex-wrap items-center gap-x-4 gap-y-4 border-t border-gray-900/10 px-6 py-4 sm:flex-nowrap">
+                <img
+                  alt={featuredTestimonial.image.alternativeText}
+                  src={baseUrl + featuredTestimonial.image.url}
+                  className="h-10 w-10 flex-none rounded-full bg-gray-50"
+                />
+                <div className="flex-auto">
+                  <div className="font-semibold">
+                    {featuredTestimonial.name}
+                  </div>
+                  <div className="text-gray-600">{`@${featuredTestimonial.handle}`}</div>
                 </div>
-                <div className="text-gray-600">{`@${featuredTestimonial.author.handle}`}</div>
-              </div>
-              <img
-                alt=""
-                src={featuredTestimonial.author.logoUrl}
-                className="h-10 w-auto flex-none"
-              />
-            </figcaption>
-          </figure>
-          {testimonials.map((columnGroup, columnGroupIdx) => (
+                <img
+                  alt={featuredTestimonial.image.alternativeText}
+                  src={baseUrl + featuredTestimonial.logo.url}
+                  className="h-10 w-auto flex-none"
+                />
+              </figcaption>
+            </figure>
+          )}
+
+          {/* Testimonials */}
+          {testimonialColumns.map((columnGroup, columnGroupIdx) => (
             <div
               key={columnGroupIdx}
               className="space-y-8 xl:contents xl:space-y-0"
             >
-              {columnGroup.map((column, columnIdx) => (
+              {columnGroup.map((testimonial, columnIdx) => (
                 <div
                   key={columnIdx}
                   className={cn(
                     (columnGroupIdx === 0 && columnIdx === 0) ||
-                      (columnGroupIdx === testimonials.length - 1 &&
+                      (columnGroupIdx === testimonialColumns.length - 1 &&
                         columnIdx === columnGroup.length - 1)
                       ? "xl:row-span-2"
                       : "xl:row-start-1",
                     "space-y-8"
                   )}
                 >
-                  {column.map((testimonial) => (
-                    <figure
-                      key={testimonial.author.handle}
-                      className="rounded-2xl bg-white p-6 shadow-lg ring-1 ring-gray-900/5"
-                    >
-                      <blockquote className="text-gray-900">
-                        <p>{`“${testimonial.body}”`}</p>
-                      </blockquote>
-                      <figcaption className="mt-6 flex items-center gap-x-4">
-                        <img
-                          alt=""
-                          src={testimonial.author.imageUrl}
-                          className="h-10 w-10 rounded-full bg-gray-50"
-                        />
-                        <div>
-                          <div className="font-semibold">
-                            {testimonial.author.name}
-                          </div>
-                          <div className="text-gray-600">{`@${testimonial.author.handle}`}</div>
-                        </div>
-                      </figcaption>
-                    </figure>
-                  ))}
+                  <figure
+                    key={testimonial.handle}
+                    className="rounded-2xl bg-white p-6 shadow-lg ring-1 ring-gray-900/5"
+                  >
+                    <blockquote className="text-gray-900">
+                      <p>{testimonial.text}</p>
+                    </blockquote>
+                    <figcaption className="mt-6 flex items-center gap-x-4">
+                      <img
+                        alt={testimonial.image.alternativeText}
+                        src={baseUrl + testimonial.image.url}
+                        className="h-10 w-10 rounded-full bg-gray-50"
+                      />
+                      <div>
+                        <div className="font-semibold">{testimonial.name}</div>
+                        <div className="text-gray-600">{`@${testimonial.handle}`}</div>
+                      </div>
+                    </figcaption>
+                  </figure>
                 </div>
               ))}
             </div>

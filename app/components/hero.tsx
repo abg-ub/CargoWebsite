@@ -1,6 +1,13 @@
 import { Link } from "@remix-run/react";
+import { HeroProps } from "~/types";
+import { baseUrl } from "~/utils/helper-data";
 
-export default function Hero() {
+export default function Hero({
+  title,
+  description,
+  buttonLinks,
+  image,
+}: HeroProps) {
   return (
     <div className="bg-white">
       <div className="relative isolate pt-14">
@@ -20,7 +27,7 @@ export default function Hero() {
               <path d="M100 200V.5M.5 .5H200" fill="none" />
             </pattern>
           </defs>
-          <svg x="50%" y={-1} className="overflow-visible fill-gray-50">
+          <svg x="50%" y={-1} className="overflow-visible fill-primary/5">
             <path
               d="M-100.5 0h201v201h-201Z M699.5 0h201v201h-201Z M499.5 400h201v201h-201Z M-300.5 600h201v201h-201Z"
               strokeWidth={0}
@@ -36,31 +43,37 @@ export default function Hero() {
         <div className="mx-auto max-w-7xl px-6 py-16 sm:py-32 lg:flex lg:items-center lg:gap-x-10 lg:px-8 lg:py-24">
           <div className="mx-auto max-w-2xl lg:mx-0 lg:flex-auto">
             <h1 className="mt-10 max-w-lg text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-              Shipping Solutions That Move Your Business Forward
+              {title}
             </h1>
             <p className="mt-6 text-lg leading-8 text-gray-600">
-              Delivering fast, reliable, and cost-effective shipping services
-              that keep your business on track. From local to global, we ensure
-              your products reach their destination with ease and efficiency.
+              {description}
             </p>
 
             <div className="mt-10 flex items-center gap-x-6">
-              <Link to="/contact" className="btn-primary">
-                Contact us
-              </Link>
-              <Link
-                to="/services"
-                className="text-sm font-semibold leading-6 text-gray-900"
-              >
-                Learn more <span aria-hidden="true">→</span>
-              </Link>
+              {buttonLinks.length > 0 && (
+                <Link
+                  to={baseUrl + buttonLinks[0].href}
+                  className="btn-primary"
+                >
+                  {buttonLinks[0].title}
+                </Link>
+              )}
+
+              {buttonLinks.length > 1 && (
+                <Link
+                  to={baseUrl + buttonLinks[1].href}
+                  className="text-sm font-semibold leading-6 text-gray-900"
+                >
+                  {buttonLinks[1].title} <span aria-hidden="true">→</span>
+                </Link>
+              )}
             </div>
           </div>
           <div className="mt-16 sm:mt-24 lg:mt-0 lg:flex-shrink-0 lg:flex-grow">
             <img
-              src="/images/truck.png"
+              src={baseUrl + image.url}
               className="mx-auto w-[30rem] max-w-full drop-shadow-xl"
-              alt="truck"
+              alt={image.alternativeText}
             ></img>
           </div>
         </div>
