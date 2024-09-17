@@ -1,7 +1,11 @@
 import { TeamProps } from "~/types";
-import { baseUrl } from "~/utils/helper-data";
 
-export default function Team({ title, description, teamMembers }: TeamProps) {
+export default function Team({
+  title,
+  description,
+  teamMembers,
+  baseUrl,
+}: TeamProps) {
   return (
     <div className="relative isolate py-24 sm:py-32">
       <div

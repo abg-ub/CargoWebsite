@@ -4,12 +4,12 @@ import { useState } from "react";
 
 import { Link } from "@remix-run/react";
 import { HeaderProps } from "~/types";
-import { baseUrl } from "~/utils/helper-data";
 
 export default function Header({
   logoLink,
   navItems,
   buttonLink,
+  baseUrl,
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   return (

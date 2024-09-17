@@ -1,12 +1,12 @@
 import { Link } from "@remix-run/react";
 import { Hero2Props } from "~/types";
-import { baseUrl } from "~/utils/helper-data";
 
 export default function Hero2({
   title,
   description,
   buttonLinks,
   images,
+  baseUrl,
 }: Hero2Props) {
   return (
     <div className="relative isolate">

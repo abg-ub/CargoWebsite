@@ -1,11 +1,11 @@
 import { Link } from "@remix-run/react";
 import { FeaturesProps } from "~/types";
-import { baseUrl } from "~/utils/helper-data";
 
 export default function Features({
   title,
   description,
   features,
+  baseUrl,
 }: FeaturesProps) {
   return (
     <div className="relative isolate bg-white py-24 sm:py-32 overflow-hidden rounded-lg">

@@ -1,6 +1,5 @@
 import { Link } from "@remix-run/react";
 import { ContentProps } from "~/types";
-import { baseUrl } from "~/utils/helper-data";
 
 export default function Content({
   title1,
@@ -11,6 +10,7 @@ export default function Content({
   paragraph4,
   buttonLink,
   image,
+  baseUrl,
 }: ContentProps) {
   return (
     <div className="bg-white py-24 sm:py-32">

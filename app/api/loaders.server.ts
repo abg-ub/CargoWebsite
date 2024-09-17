@@ -7,6 +7,7 @@ const baseUrl = process.env.STRAPI_URL;
 async function fetchData(url: string) {
   try {
     const response = await fetch(url);
+    console.log(url);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -22,7 +23,6 @@ async function fetchData(url: string) {
 export async function getGlobalData() {
   const query = qs.stringify({
     populate: {
-      defaultSeo: { populate: "*" },
       header: { populate: ["logoLink.image", "navItems", "buttonLink"] },
       footer: { populate: "*" },
     },

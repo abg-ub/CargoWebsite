@@ -1,5 +1,4 @@
 import { DetailedFeaturesProps } from "~/types";
-import { baseUrl } from "~/utils/helper-data";
 
 export default function DetailedFeatures({
   title,
@@ -7,6 +6,7 @@ export default function DetailedFeatures({
   description,
   image,
   features,
+  baseUrl,
 }: DetailedFeaturesProps) {
   return (
     <div className="bg-white py-24 sm:py-32">

@@ -5,6 +5,7 @@ export interface HeaderProps {
   logoLink: LogoLink;
   navItems: Link[];
   buttonLink: Link;
+  baseUrl: string;
 }
 
 export interface FooterProps {
@@ -12,6 +13,7 @@ export interface FooterProps {
   copyRight: string;
   navItems: Link[];
   socialLinks: Link[];
+  baseUrl: string;
 }
 
 export interface HeroProps {
@@ -20,6 +22,7 @@ export interface HeroProps {
   description: string;
   buttonLinks: Link[];
   image: Image;
+  baseUrl: string;
 }
 
 export interface Hero2Props {
@@ -28,12 +31,14 @@ export interface Hero2Props {
   description: string;
   buttonLinks: Link[];
   images: Image[];
+  baseUrl: string;
 }
 
 export interface LogoCloudProps {
   id: number;
   title: string;
   images: Image[];
+  baseUrl: string;
 }
 
 export interface FeaturesProps {
@@ -41,6 +46,7 @@ export interface FeaturesProps {
   title: string;
   description: string;
   features: Feature[];
+  baseUrl: string;
 }
 
 export interface DetailedFeaturesProps {
@@ -50,6 +56,7 @@ export interface DetailedFeaturesProps {
   description: string;
   features: Feature[];
   image: Image;
+  baseUrl: string;
 }
 
 export interface CallToActionProps {
@@ -58,6 +65,7 @@ export interface CallToActionProps {
   title2: string;
   description: string;
   buttonLinks: Link[];
+  baseUrl: string;
 }
 
 export interface TestimonialsProps {
@@ -65,6 +73,7 @@ export interface TestimonialsProps {
   title: string;
   description: string;
   testimonies: Testimony[];
+  baseUrl: string;
 }
 
 export interface ContentProps {
@@ -77,6 +86,7 @@ export interface ContentProps {
   paragraph4: string;
   image: Image;
   buttonLink: Link;
+  baseUrl: string;
 }
 
 export interface Content2Props {
@@ -84,6 +94,7 @@ export interface Content2Props {
   title: string;
   description: string;
   sections: { title: string; description: string }[];
+  baseUrl: string;
 }
 
 export interface TeamProps {
@@ -97,6 +108,7 @@ export interface TeamProps {
     address: string;
     image: Image;
   }[];
+  baseUrl: string;
 }
 
 export interface Testimony {

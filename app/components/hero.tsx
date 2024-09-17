@@ -1,12 +1,12 @@
 import { Link } from "@remix-run/react";
 import { HeroProps } from "~/types";
-import { baseUrl } from "~/utils/helper-data";
 
 export default function Hero({
   title,
   description,
   buttonLinks,
   image,
+  baseUrl,
 }: HeroProps) {
   return (
     <div className="bg-white">

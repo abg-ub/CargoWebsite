@@ -7,53 +7,30 @@ import {
   ScrollRestoration,
   useLoaderData,
   useRouteError,
-  useRouteLoaderData,
 } from "@remix-run/react";
 
-import {
-  json,
-  type LinksFunction,
-  type LoaderFunction,
-  type MetaFunction,
-} from "@remix-run/node";
+import { json, type LinksFunction, type LoaderFunction } from "@remix-run/node";
 import stylesheet from "~/tailwind.css?url";
 import Header from "~/components/header";
 import Footer from "~/components/footer";
 import PageNotFound from "~/components/page-not-found";
 import { getGlobalData } from "~/api/loaders.server";
+import * as process from "node:process";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
   { rel: "icon", href: "/favicon.ico" },
 ];
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  if (data && data.siteName && data.siteDescription) {
-    return [
-      { title: data.siteName },
-      { name: "description", content: data.siteDescription },
-    ];
-  }
-
-  // Fallback meta tags if data is not available
-  return [
-    { title: "Wakhan Line" },
-    { name: "description", content: "Welcome to Wakhan Line" },
-  ];
-};
-
 export const loader: LoaderFunction = async () => {
   const globalData = await getGlobalData();
   return json({
     globalData: globalData,
-    ENV: {
-      STRAPI_URL: process.env.STRAPI_URL,
-    },
+    ENV: { STRAPI_URL: process.env.STRAPI_URL },
   });
 };
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const data = useRouteLoaderData<typeof loader>("root");
   return (
     <html lang="en" className="h-full">
       <head>
@@ -64,11 +41,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body className="h-full">
         {children}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
-          }}
-        />
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -77,12 +49,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const { globalData } = useLoaderData<typeof loader>();
+  const data = useLoaderData<typeof loader>();
+
   return (
     <>
-      <Header {...globalData.header} />
+      <Header {...data.globalData.header} baseUrl={data.ENV.STRAPI_URL} />
       <Outlet />
-      <Footer {...globalData.footer} />
+      <Footer {...data.globalData.footer} baseUrl={data.ENV.STRAPI_URL} />
     </>
   );
 }
@@ -105,7 +78,6 @@ export function ErrorBoundary() {
   if (error instanceof Error) {
     errorMessage = error.message;
     errorTitle = error.name;
-    console.log(error.name);
   }
 
   return <PageNotFound title={errorTitle} message={errorMessage} />;

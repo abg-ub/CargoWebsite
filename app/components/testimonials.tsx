@@ -1,11 +1,12 @@
 import { TestimonialsProps } from "~/types";
-import { baseUrl } from "~/utils/helper-data";
+
 import { cn, splitTestimonials } from "~/utils/utils";
 
 export default function Testimonials({
   title,
   description,
   testimonies,
+  baseUrl,
 }: TestimonialsProps) {
   const featuredTestimonial = testimonies.find(
     (testimony) => testimony.isFeatured

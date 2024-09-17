@@ -1,7 +1,6 @@
 import { LogoCloudProps } from "~/types";
-import { baseUrl } from "~/utils/helper-data";
 
-export default function LogoClouds({ title, images }: LogoCloudProps) {
+export default function LogoClouds({ title, images, baseUrl }: LogoCloudProps) {
   return (
     <div className="bg-white py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
