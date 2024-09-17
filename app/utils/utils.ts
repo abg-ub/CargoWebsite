@@ -27,3 +27,13 @@ export const splitTestimonials = (testimonials: Testimony[]) => {
 
   return [leftColumn, rightColumn];
 };
+
+export function formatUrl(url: string, baseUrl: string) {
+  if (url.startsWith("https://")) {
+    return url;
+  } else if (url.startsWith("/")) {
+    return `${baseUrl}${url}`;
+  } else {
+    throw new Error("Invalid URL format");
+  }
+}

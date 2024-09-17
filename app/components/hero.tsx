@@ -1,5 +1,6 @@
 import { Link } from "@remix-run/react";
 import { HeroProps } from "~/types";
+import { formatUrl } from "~/utils/utils";
 
 export default function Hero({
   title,
@@ -71,7 +72,7 @@ export default function Hero({
           </div>
           <div className="mt-16 sm:mt-24 lg:mt-0 lg:flex-shrink-0 lg:flex-grow">
             <img
-              src={baseUrl + image.url}
+              src={formatUrl(image.url, baseUrl)}
               className="mx-auto w-[30rem] max-w-full drop-shadow-xl"
               alt={image.alternativeText}
             ></img>

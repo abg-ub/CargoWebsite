@@ -1,4 +1,5 @@
 import { LogoCloudProps } from "~/types";
+import { formatUrl } from "~/utils/utils";
 
 export default function LogoClouds({ title, images, baseUrl }: LogoCloudProps) {
   return (
@@ -12,7 +13,7 @@ export default function LogoClouds({ title, images, baseUrl }: LogoCloudProps) {
             <img
               key={image.id}
               alt={image.alternativeText}
-              src={baseUrl + image.url}
+              src={formatUrl(image.url, baseUrl)}
               width={158}
               height={48}
               className="col-span-2 max-h-12 w-full object-contain lg:col-span-1"
