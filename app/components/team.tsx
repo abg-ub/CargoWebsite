@@ -1,4 +1,5 @@
 import { TeamProps } from "~/types";
+import { formatUrl } from "~/utils/utils";
 
 export default function Team({
   title,
@@ -44,7 +45,7 @@ export default function Team({
             <li key={index}>
               <img
                 alt=""
-                src={baseUrl + person.image.url}
+                src={formatUrl(person.image.url, baseUrl)}
                 className="aspect-[14/13] w-full rounded-2xl object-cover"
               />
               <h3 className="mt-6 text-lg font-semibold leading-8 tracking-tight text-gray-900 ">

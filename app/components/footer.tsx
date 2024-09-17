@@ -1,31 +1,12 @@
 import { Link } from "@remix-run/react";
-import {
-  FacebookIcon,
-  InstagramIcon,
-  XIcon,
-  YouTubeIcon,
-} from "~/components/icons";
 import { FooterProps } from "~/types";
-
-const iconSelector = (name: string, props: React.SVGProps<SVGSVGElement>) => {
-  switch (name) {
-    case "Facebook":
-      return <FacebookIcon {...props} />;
-    case "Instagram":
-      return <InstagramIcon {...props} />;
-    case "X":
-      return <XIcon {...props} />;
-    case "YouTube":
-      return <YouTubeIcon {...props} />;
-    default:
-      return null;
-  }
-};
+import { formatUrl } from "~/utils/utils";
 
 export default function Footer({
   navItems,
   socialLinks,
   copyRight,
+  baseUrl,
 }: FooterProps) {
   return (
     <footer className="bg-white border-t">
@@ -54,11 +35,21 @@ export default function Footer({
               target={item.isExternal ? "_blank" : "_self"}
               rel="noopener noreferrer"
             >
-              <span className="sr-only">{item.title}</span>
-              {iconSelector(item.title, {
-                className: "h-6 w-6",
-                "aria-hidden": "true",
-              })}
+              <span className="sr-only">{item.image.alternativeText}</span>
+              <div
+                className="h-6 w-6 bg-gray-400 hover:bg-primary"
+                style={{
+                  mask: `url(${formatUrl(
+                    item.image.url,
+                    baseUrl
+                  )}) no-repeat center / contain`,
+                  WebkitMask: `url(${formatUrl(
+                    item.image.url,
+                    baseUrl
+                  )}) no-repeat center / contain`,
+                }}
+                aria-hidden="true"
+              />
             </Link>
           ))}
         </div>

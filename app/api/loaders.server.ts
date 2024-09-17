@@ -24,7 +24,7 @@ export async function getGlobalData() {
   const query = qs.stringify({
     populate: {
       header: { populate: ["logoLink.image", "navItems", "buttonLink"] },
-      footer: { populate: "*" },
+      footer: { populate: ["navItems", "socialLinks.image"] },
     },
   });
   const url = `${baseUrl}/api/global?${query}`;

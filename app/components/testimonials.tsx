@@ -1,6 +1,6 @@
 import { TestimonialsProps } from "~/types";
 
-import { cn, splitTestimonials } from "~/utils/utils";
+import { cn, formatUrl, splitTestimonials } from "~/utils/utils";
 
 export default function Testimonials({
   title,
@@ -60,7 +60,7 @@ export default function Testimonials({
               <figcaption className="flex flex-wrap items-center gap-x-4 gap-y-4 border-t border-gray-900/10 px-6 py-4 sm:flex-nowrap">
                 <img
                   alt={featuredTestimonial.image.alternativeText}
-                  src={baseUrl + featuredTestimonial.image.url}
+                  src={formatUrl(featuredTestimonial.image.url, baseUrl)}
                   className="h-10 w-10 flex-none rounded-full bg-gray-50"
                 />
                 <div className="flex-auto">
@@ -71,7 +71,7 @@ export default function Testimonials({
                 </div>
                 <img
                   alt={featuredTestimonial.image.alternativeText}
-                  src={baseUrl + featuredTestimonial.logo.url}
+                  src={formatUrl(featuredTestimonial.logo.url, baseUrl)}
                   className="h-10 w-auto flex-none"
                 />
               </figcaption>
@@ -106,7 +106,7 @@ export default function Testimonials({
                     <figcaption className="mt-6 flex items-center gap-x-4">
                       <img
                         alt={testimonial.image.alternativeText}
-                        src={baseUrl + testimonial.image.url}
+                        src={formatUrl(testimonial.image.url, baseUrl)}
                         className="h-10 w-10 rounded-full bg-gray-50"
                       />
                       <div>

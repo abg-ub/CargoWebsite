@@ -1,5 +1,6 @@
 import { Link } from "@remix-run/react";
 import { FeaturesProps } from "~/types";
+import { formatUrl } from "~/utils/utils";
 
 export default function Features({
   title,
@@ -84,12 +85,14 @@ export default function Features({
                     <div
                       className="h-6 w-6 bg-white"
                       style={{
-                        mask: `url(${
-                          baseUrl + feature.logo.url
-                        }) no-repeat center`,
-                        WebkitMask: `url(${
-                          baseUrl + feature.logo.url
-                        }) no-repeat center`,
+                        mask: `url(${formatUrl(
+                          feature.logo.url,
+                          baseUrl
+                        )}) no-repeat center`,
+                        WebkitMask: `url(${formatUrl(
+                          feature.logo.url,
+                          baseUrl
+                        )}) no-repeat center`,
                       }}
                     />
                   </div>

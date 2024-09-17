@@ -1,5 +1,6 @@
 import { Link } from "@remix-run/react";
 import { Hero2Props } from "~/types";
+import { formatUrl } from "~/utils/utils";
 
 export default function Hero2({
   title,
@@ -63,16 +64,13 @@ export default function Hero2({
               </p>
               <div className="mt-10 flex items-center gap-x-6">
                 {buttonLinks.length > 0 && (
-                  <Link
-                    to={baseUrl + buttonLinks[0].href}
-                    className="btn-primary"
-                  >
+                  <Link to={buttonLinks[0].href} className="btn-primary">
                     {buttonLinks[0].title}
                   </Link>
                 )}
                 {buttonLinks.length > 1 && (
                   <Link
-                    to={baseUrl + buttonLinks[1].href}
+                    to={buttonLinks[1].href}
                     className="text-sm font-semibold leading-6 text-gray-900"
                   >
                     {buttonLinks[1].title} <span aria-hidden="true">→</span>
@@ -85,7 +83,7 @@ export default function Hero2({
                 {images[0] && (
                   <div className="relative">
                     <img
-                      src={baseUrl + images[0].url}
+                      src={formatUrl(images[0].url, baseUrl)}
                       alt={images[0].alternativeText}
                       className="aspect-[2/3] w-full rounded-xl bg-gray-900/5 object-cover shadow-lg"
                     />
@@ -97,7 +95,7 @@ export default function Hero2({
                 {images[1] && (
                   <div className="relative">
                     <img
-                      src={baseUrl + images[1].url}
+                      src={formatUrl(images[1].url, baseUrl)}
                       alt={images[1].alternativeText}
                       className="aspect-[2/3] w-full rounded-xl bg-gray-900/5 object-cover shadow-lg"
                     />
@@ -107,7 +105,7 @@ export default function Hero2({
                 {images[2] && (
                   <div className="relative">
                     <img
-                      src={baseUrl + images[2].url}
+                      src={formatUrl(images[2].url, baseUrl)}
                       alt={images[2].alternativeText}
                       className="aspect-[2/3] w-full rounded-xl bg-gray-900/5 object-cover shadow-lg"
                     />
@@ -119,7 +117,7 @@ export default function Hero2({
                 {images[3] && (
                   <div className="relative">
                     <img
-                      src={baseUrl + images[3].url}
+                      src={formatUrl(images[3].url, baseUrl)}
                       alt={images[3].alternativeText}
                       className="aspect-[2/3] w-full rounded-xl bg-gray-900/5 object-cover shadow-lg"
                     />
@@ -129,7 +127,7 @@ export default function Hero2({
                 {images[4] && (
                   <div className="relative">
                     <img
-                      src={baseUrl + images[4].url}
+                      src={formatUrl(images[4].url, baseUrl)}
                       alt={images[4].alternativeText}
                       className="aspect-[2/3] w-full rounded-xl bg-gray-900/5 object-cover shadow-lg"
                     />

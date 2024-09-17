@@ -1,4 +1,5 @@
 import { DetailedFeaturesProps } from "~/types";
+import { formatUrl } from "~/utils/utils";
 
 export default function DetailedFeatures({
   title,
@@ -25,7 +26,7 @@ export default function DetailedFeatures({
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <img
             alt={image.alternativeText}
-            src={baseUrl + image.url}
+            src={formatUrl(image.url, baseUrl)}
             width={2432}
             height={1442}
             className="mb-[-12%] rounded-xl shadow-2xl ring-1 ring-gray-900/10"
@@ -43,10 +44,14 @@ export default function DetailedFeatures({
                 <div
                   className="absolute left-1 top-1 h-5 w-5 bg-primary"
                   style={{
-                    mask: `url(${baseUrl + feature.logo.url}) no-repeat center`,
-                    WebkitMask: `url(${
-                      baseUrl + feature.logo.url
-                    }) no-repeat center`,
+                    mask: `url(${formatUrl(
+                      feature.logo.url,
+                      baseUrl
+                    )}) no-repeat center`,
+                    WebkitMask: `url(${formatUrl(
+                      feature.logo.url,
+                      baseUrl
+                    )}) no-repeat center`,
                   }}
                 />
                 {`${feature.name}: `}

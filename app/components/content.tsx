@@ -1,5 +1,6 @@
 import { Link } from "@remix-run/react";
 import { ContentProps } from "~/types";
+import { formatUrl } from "~/utils/utils";
 
 export default function Content({
   title1,
@@ -45,7 +46,7 @@ export default function Content({
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <img
             className="mb-[-12%] rounded-xl shadow-2xl ring-1 ring-gray-900/10"
-            src={baseUrl + image.url}
+            src={formatUrl(image.url, baseUrl)}
             alt={image.alternativeText}
           />
           <div className="relative" aria-hidden="true">

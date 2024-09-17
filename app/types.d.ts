@@ -12,7 +12,7 @@ export interface FooterProps {
   id: number;
   copyRight: string;
   navItems: Link[];
-  socialLinks: Link[];
+  socialLinks: LogoLink[];
   baseUrl: string;
 }
 

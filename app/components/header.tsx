@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Link } from "@remix-run/react";
 import { HeaderProps } from "~/types";
+import { formatUrl } from "~/utils/utils";
 
 export default function Header({
   logoLink,
@@ -23,7 +24,7 @@ export default function Header({
             <span className="sr-only">Wakhan Line</span>
             <img
               alt={logoLink.image.alternativeText}
-              src={baseUrl + logoLink.image.url}
+              src={formatUrl(logoLink.image.url, baseUrl)}
               className="h-10 w-auto"
             />
           </Link>
@@ -72,7 +73,7 @@ export default function Header({
               <span className="sr-only">Wakhan Line</span>
               <img
                 alt={logoLink.image.alternativeText}
-                src={baseUrl + logoLink.image.url}
+                src={formatUrl(logoLink.image.url, baseUrl)}
                 className="h-10 w-auto"
               />
             </Link>

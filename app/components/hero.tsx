@@ -52,17 +52,14 @@ export default function Hero({
 
             <div className="mt-10 flex items-center gap-x-6">
               {buttonLinks.length > 0 && (
-                <Link
-                  to={baseUrl + buttonLinks[0].href}
-                  className="btn-primary"
-                >
+                <Link to={buttonLinks[0].href} className="btn-primary">
                   {buttonLinks[0].title}
                 </Link>
               )}
 
               {buttonLinks.length > 1 && (
                 <Link
-                  to={baseUrl + buttonLinks[1].href}
+                  to={buttonLinks[1].href}
                   className="text-sm font-semibold leading-6 text-gray-900"
                 >
                   {buttonLinks[1].title} <span aria-hidden="true">→</span>
