@@ -15,7 +15,6 @@ async function fetchData(url: string) {
     const data = await response.json();
     return flattenStrapiResponse(data);
   } catch (error) {
-    console.error("Fetch error:", error);
     throw error;
   }
 }
