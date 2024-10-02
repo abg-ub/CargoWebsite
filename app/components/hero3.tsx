@@ -1,6 +1,7 @@
 import { Link } from "@remix-run/react";
+import { Hero3Props } from "../types";
 
-export default function Hero3() {
+export default function Hero3({ title, description, buttonLinks, baseUrl }: Hero3Props) {
   return (
     <div className="bg-white">
       <div className="relative isolate px-6 pt-14 lg:px-8">
@@ -19,23 +20,25 @@ export default function Hero3() {
         <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
           <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-              Data to enrich your online business
+              {title}
             </h1>
             <p className="mt-6 text-lg leading-8 text-gray-600">
-              Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui
-              lorem cupidatat commodo. Elit sunt amet fugiat veniam occaecat
-              fugiat aliqua.
+              {description}
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
-              <Link to="#" className="btn-primary">
-                Get started
-              </Link>
-              <Link
-                to="#"
-                className="text-sm font-semibold leading-6 text-gray-900"
-              >
-                Learn more <span aria-hidden="true">→</span>
-              </Link>
+              {buttonLinks.length > 0 && (
+                <Link to={buttonLinks[0].href} className="btn-primary">
+                  {buttonLinks[0].title}
+                </Link>
+              )}
+              {buttonLinks.length > 1 && (
+                <Link
+                  to={buttonLinks[1].href}
+                  className="text-sm font-semibold leading-6 text-gray-900"
+                >
+                  {buttonLinks[1].title} <span aria-hidden="true">→</span>
+                </Link>
+              )}
             </div>
           </div>
         </div>

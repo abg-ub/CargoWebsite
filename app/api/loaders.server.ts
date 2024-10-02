@@ -7,7 +7,6 @@ const baseUrl = process.env.STRAPI_URL;
 async function fetchData(url: string) {
   try {
     const response = await fetch(url);
-    console.log(url);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -67,12 +66,16 @@ export async function getDynamicPageData(slug: string) {
         on: {
           "layout.hero": { populate: "*" },
           "layout.hero2": { populate: "*" },
+          "layout.hero3": { populate: "*" },
           "layout.logo-cloud": { populate: "*" },
           "layout.features": {
             populate: {
               features: { populate: "*" },
             },
           },
+          "layout.features2": { populate: ["features.logo"] },
+          "layout.features3": { populate: ["features.logo", "image"] },
+          "layout.features4": { populate: ["features.logo", "image"] },
           "layout.detailed-features": { populate: ["image", "features.logo"] },
           "layout.call-to-action": { populate: "*" },
           "layout.testimonials": {
@@ -84,12 +87,21 @@ export async function getDynamicPageData(slug: string) {
           "layout.content": { populate: "*" },
           "layout.content2": { populate: "*" },
           "layout.team": { populate: ["teamMembers.image"] },
+          "layout.stats": { populate: "*" },
         },
       },
     },
   });
 
   const url = `${baseUrl}/api/pages?${query}`;
-  console.log(url);
+
+  return await fetchData(url);
+}
+
+export async function getBlogPageData() {
+  const query = qs.stringify({
+    populate: { posts: { populate: ["author.image", "coverImage"] } },
+  });
+  const url = `${baseUrl}/api/blog?${query}`;
   return await fetchData(url);
 }

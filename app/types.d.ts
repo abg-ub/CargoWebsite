@@ -111,6 +111,70 @@ export interface TeamProps {
   baseUrl: string;
 }
 
+export interface StatsProps {
+  id: number;
+  title: string;
+  description: string;
+  stats: { id: number; title: string; description: string }[];
+}
+
+export interface Hero3Props {
+  id: number;
+  title: string;
+  description: string;
+  buttonLinks: Link[];
+  baseUrl: string;
+}
+
+export interface Features2Props {
+  id: number;
+  title1: string;
+  title2: string;
+  description: string;
+  features: Feature[];
+  baseUrl: string;
+}
+
+export interface Features3Props {
+  id: number;
+  title1: string;
+  title2: string;
+  description: string;
+  features: Feature[];
+  image: Image;
+  baseUrl: string;
+}
+
+export interface Features4Props {
+  id: number;
+  title1: string;
+  title2: string;
+  description: string;
+  features: Feature[];
+  image: Image;
+  baseUrl: string;
+}
+
+export interface BlogsProps {
+  id: number;
+  title: string;
+  description: string;
+  posts: Post[];
+  baseUrl: string;
+}
+
+export interface Post {
+  id: number;
+  title: string;
+  coverImage: Image;
+  publishedAt: string;
+  href: string;
+  author: {
+    name: string;
+    image: Image;
+  };
+}
+
 export interface Testimony {
   id: number;
   text: string;

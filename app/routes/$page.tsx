@@ -17,6 +17,9 @@ import * as process from "node:process";
 import Hero3 from "~/components/hero3";
 import Features2 from "~/components/features2";
 import Stats from "~/components/stats";
+import Features3 from "~/components/features3";
+import Features4 from "~/components/features4";
+import Blogs from "~/components/blogs";
 
 const renderBlock = (block: any, baseUrl: string) => {
   switch (block.__component) {
@@ -42,6 +45,16 @@ const renderBlock = (block: any, baseUrl: string) => {
       return <Content2 {...block} baseUrl={baseUrl} />;
     case "layout.team":
       return <Team {...block} baseUrl={baseUrl} />;
+    case "layout.stats":
+      return <Stats {...block} baseUrl={baseUrl} />;
+    case "layout.hero3":
+      return <Hero3 {...block} baseUrl={baseUrl} />;
+    case "layout.features2":
+      return <Features2 {...block} baseUrl={baseUrl} />;
+    case "layout.features3":
+      return <Features3 {...block} baseUrl={baseUrl} />;
+    case "layout.features4":
+      return <Features4 {...block} baseUrl={baseUrl} />
     default:
       return null;
   }
@@ -65,15 +78,11 @@ export default function DynamicPage() {
   console.log(data);
 
   return (
-    // <main>
-    //   {data.response[0].blocks.map((block: any, index) => (
-    //     <section key={index}>{renderBlock(block, data.ENV.STRAPI_URL)}</section>
-    //   ))}
-    // </main>
-    <>
-      <Hero3 />
-      <Stats />
-      <Features2 />
-    </>
+    <main>
+      {data.response[0].blocks.map((block: any, index) => (
+        <section key={index}>{renderBlock(block, data.ENV.STRAPI_URL)}</section>
+      ))}
+    </main>
+
   );
 }

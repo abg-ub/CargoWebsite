@@ -47,7 +47,6 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 export const loader: LoaderFunction = async () => {
   const response = await getHomePageData();
-  console.log(response);
   if (!response.blocks) {
     throw Error(
       "Sorry the server is not responding right now. Please try again later."
