@@ -6,11 +6,13 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
+  useLocation,
   useRouteError,
 } from "@remix-run/react";
 
 import { json, type LinksFunction, type LoaderFunction } from "@remix-run/node";
 import stylesheet from "~/tailwind.css?url";
+import "mapbox-gl/dist/mapbox-gl.css";
 import Header from "~/components/header";
 import Footer from "~/components/footer";
 import PageNotFound from "~/components/page-not-found";
@@ -50,13 +52,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const data = useLoaderData<typeof loader>();
+  const location = useLocation();
   console.log(data);
+
+  const isAdminRoute = location.pathname.startsWith("/admin");
 
   return (
     <>
-      <Header {...data.globalData.header} baseUrl={data.ENV.STRAPI_URL} />
+      {!isAdminRoute && (
+        <Header {...data.globalData.header} baseUrl={data.ENV.STRAPI_URL} />
+      )}
       <Outlet />
-      <Footer {...data.globalData.footer} baseUrl={data.ENV.STRAPI_URL} />
+      {!isAdminRoute && (
+        <Footer {...data.globalData.footer} baseUrl={data.ENV.STRAPI_URL} />
+      )}
     </>
   );
 }

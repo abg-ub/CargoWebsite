@@ -1,7 +1,7 @@
 import { Link } from "@remix-run/react";
 import { Hero3Props } from "../types";
 
-export default function Hero3({ title, description, buttonLinks, baseUrl }: Hero3Props) {
+export default function Hero3({ title, description, buttonLinks }: Hero3Props) {
   return (
     <div className="bg-white">
       <div className="relative isolate px-6 pt-14 lg:px-8">

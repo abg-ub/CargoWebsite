@@ -1,5 +1,3 @@
-import { Section } from "@jridgewell/trace-mapping";
-
 export interface HeaderProps {
   id: number;
   logoLink: LogoLink;
@@ -173,6 +171,14 @@ export interface Post {
     name: string;
     image: Image;
   };
+}
+
+export interface ServicePoint {
+  id: number;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
 }
 
 export interface Testimony {

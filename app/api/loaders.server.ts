@@ -5,17 +5,13 @@ import * as process from "node:process";
 const baseUrl = process.env.STRAPI_URL;
 
 async function fetchData(url: string) {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return flattenStrapiResponse(data);
-  } catch (error) {
-    throw error;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
+
+  const data = await response.json();
+  return flattenStrapiResponse(data);
 }
 
 export async function getGlobalData() {
@@ -104,4 +100,34 @@ export async function getBlogPageData() {
   });
   const url = `${baseUrl}/api/blog?${query}`;
   return await fetchData(url);
+}
+
+export async function getPostByTitle(title: string) {
+  const query = qs.stringify({
+    filters: { title: { $eq: title } },
+    populate: "*",
+  });
+  const url = `${baseUrl}/api/posts?${query}`;
+  return await fetchData(url);
+}
+
+export async function getServicePoints() {
+  const query = qs.stringify({
+    populate: "*",
+  });
+  const url = `${baseUrl}/api/service-points?${query}`;
+  return await fetchData(url);
+}
+
+//Authentication
+export async function isTokenValidWithStrapi(jwt: string) {
+  const response = await fetch(`${process.env.STRAPI_URL}/api/users/me`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+    },
+  });
+
+  // If the response is ok, the token is valid
+  return response.ok;
 }
