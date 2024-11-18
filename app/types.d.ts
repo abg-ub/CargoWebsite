@@ -174,11 +174,13 @@ export interface Post {
 }
 
 export interface ServicePoint {
-  id: number;
+  id: string | number;
+  documentId: string;
   name: string;
-  address: string;
   latitude: number;
   longitude: number;
+  address: string;
+  branch: Branch;
 }
 
 export interface Testimony {
@@ -238,3 +240,116 @@ export interface PageData {
   description: string;
   blocks: [];
 }
+
+// Admin Panel
+export interface Customer {
+  id: string | number;
+  documentId: string;
+  firstName: string;
+  lastName: string;
+  country: string;
+  city: string;
+  address: string;
+  email: string;
+  phone: string;
+}
+
+export interface Branch {
+  id: string | number;
+  documentId: string;
+  name: string;
+  email: string;
+  phone: string;
+  country: string;
+  city: string;
+  address: string;
+}
+
+// // Forms
+
+// Form Errors
+export type FieldError = {
+  message: string;
+  type: string;
+};
+
+export type CustomerFormErrors = {
+  apiError?: {
+    message: string;
+    type: string;
+  };
+  firstName?: FieldError;
+  lastName?: FieldError;
+  email?: FieldError;
+  phone?: FieldError;
+  country?: FieldError;
+  city?: FieldError;
+  address?: FieldError;
+};
+
+export type BranchFormErrors = {
+  apiError?: {
+    message: string;
+    type: string;
+  };
+  name?: FieldError;
+  email?: FieldError;
+  phone?: FieldError;
+  country?: FieldError;
+  city?: FieldError;
+  address?: FieldError;
+};
+
+// Form Data Types
+export type CustomerData = Omit<Customer, "id" | "documentId"> & {
+  id?: string | number;
+  documentId?: string;
+};
+
+export type BranchData = Omit<Branch, "id" | "documentId"> & {
+  id?: string | number;
+  documentId?: string;
+};
+
+// Add strict typing for API responses
+export interface ApiResponse<T> {
+  data: T;
+  meta: {
+    pagination: {
+      page: number;
+      pageSize: number;
+      pageCount: number;
+      total: number;
+    };
+  };
+}
+
+// Add table-specific types
+export interface TableItem {
+  id: string | number;
+  [key: string]: any;
+}
+
+// Add ServicePoint form errors
+export type ServicePointFormErrors = {
+  apiError?: {
+    message: string;
+    type: string;
+  };
+  name?: FieldError;
+  latitude?: FieldError;
+  longitude?: FieldError;
+  address?: FieldError;
+  branch?: FieldError;
+};
+
+// Add ServicePoint form data type
+export type ServicePointData = {
+  id?: string | number;
+  documentId?: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  address: string;
+  branchId: string;
+};

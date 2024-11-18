@@ -1,17 +1,29 @@
 import qs from "qs";
 import { flattenStrapiResponse } from "~/utils/utils";
 import * as process from "node:process";
+import { getSession } from "~/session.server";
 
 const baseUrl = process.env.STRAPI_URL;
 
-async function fetchData(url: string) {
-  const response = await fetch(url);
+async function fetchData(url: string, request?: Request) {
+  const headers: HeadersInit = {};
+
+  if (request) {
+    const session = await getSession(request.headers.get("Cookie"));
+    const jwt = session.get("jwt");
+    if (!jwt) {
+      throw new Error("Authentication required");
+    }
+    headers.Authorization = `Bearer ${jwt}`;
+  }
+
+  const response = await fetch(url, { headers });
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
 
   const data = await response.json();
-  return flattenStrapiResponse(data);
+  return request ? data : flattenStrapiResponse(data);
 }
 
 export async function getGlobalData() {
@@ -111,15 +123,89 @@ export async function getPostByTitle(title: string) {
   return await fetchData(url);
 }
 
-export async function getServicePoints() {
+export async function getServicePoints(
+  request: Request,
+  page = 1,
+  pageSize = 10,
+  searchQuery = ""
+) {
   const query = qs.stringify({
-    populate: "*",
+    populate: ["branch"],
+    pagination: {
+      page,
+      pageSize,
+    },
+    filters: {
+      $or: searchQuery
+        ? [
+            { name: { $containsi: searchQuery } },
+            { branch: { name: { $containsi: searchQuery } } },
+            // Add other searchable fields as needed
+          ]
+        : undefined,
+    },
   });
+
   const url = `${baseUrl}/api/service-points?${query}`;
-  return await fetchData(url);
+  return await fetchData(url, request);
 }
 
-//Authentication
+// Admin Panel
+export async function getCustomers(
+  request: Request,
+  page = 1,
+  pageSize = 10,
+  searchQuery = ""
+) {
+  const query = qs.stringify({
+    populate: "*",
+    pagination: {
+      page,
+      pageSize,
+    },
+    filters: {
+      $or: searchQuery
+        ? [
+            { firstName: { $containsi: searchQuery } },
+            { lastName: { $containsi: searchQuery } },
+            { email: { $containsi: searchQuery } },
+          ]
+        : undefined,
+    },
+  });
+
+  const url = `${baseUrl}/api/customers?${query}`;
+  return await fetchData(url, request);
+}
+
+export async function getBranches(
+  request: Request,
+  page = 1,
+  pageSize = 10,
+  searchQuery = ""
+) {
+  const query = qs.stringify({
+    populate: "*",
+    pagination: {
+      page,
+      pageSize,
+    },
+    filters: {
+      $or: searchQuery
+        ? [
+            { name: { $containsi: searchQuery } },
+            { country: { $containsi: searchQuery } },
+            { city: { $containsi: searchQuery } },
+          ]
+        : undefined,
+    },
+  });
+
+  const url = `${baseUrl}/api/branches?${query}`;
+  return await fetchData(url, request);
+}
+
+// Authentication
 export async function isTokenValidWithStrapi(jwt: string) {
   const response = await fetch(`${process.env.STRAPI_URL}/api/users/me`, {
     method: "GET",
@@ -128,6 +214,5 @@ export async function isTokenValidWithStrapi(jwt: string) {
     },
   });
 
-  // If the response is ok, the token is valid
   return response.ok;
 }

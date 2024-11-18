@@ -105,6 +105,7 @@ export default function Header({
                 <Link
                   to={buttonLink.href}
                   className="btn-primary block text-center"
+                  onClick={() => setMobileMenuOpen(false)}
                 >
                   {buttonLink.title}
                 </Link>

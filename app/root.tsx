@@ -12,12 +12,13 @@ import {
 
 import { json, type LinksFunction, type LoaderFunction } from "@remix-run/node";
 import stylesheet from "~/tailwind.css?url";
-import "mapbox-gl/dist/mapbox-gl.css";
 import Header from "~/components/header";
 import Footer from "~/components/footer";
 import PageNotFound from "~/components/page-not-found";
 import { getGlobalData } from "~/api/loaders.server";
 import * as process from "node:process";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
@@ -45,6 +46,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {children}
         <ScrollRestoration />
         <Scripts />
+        <ToastContainer position="top-right" autoClose={3000} />
       </body>
     </html>
   );

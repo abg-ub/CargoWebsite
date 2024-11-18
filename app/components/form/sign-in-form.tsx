@@ -1,13 +1,30 @@
-import { Form, Link } from "@remix-run/react";
+import { Form, Link, useActionData } from "@remix-run/react";
+import { useEffect } from "react";
+import { toast } from "react-toastify";
 
 export default function SignInForm() {
+  const actionData = useActionData<{ error?: string }>();
+
+  useEffect(() => {
+    if (actionData?.error) {
+      toast.error(actionData.error, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
+  }, [actionData]);
+
   return (
     <div className="flex min-h-full flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <img
           alt="Your Company"
-          src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-          className="mx-auto h-10 w-auto"
+          src="/images/logo.png"
+          className="mx-auto h-20 w-auto"
         />
         <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
           Sign in to your account

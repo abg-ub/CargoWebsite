@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import * as maptilersdk from "@maptiler/sdk";
 import "@maptiler/sdk/dist/maptiler-sdk.css";
-import SelectMenu from "~/components/select-menu";
+import SelectMenu from "~/components/form/select-menu";
 import { getServicePoints } from "~/api/loaders.server";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";

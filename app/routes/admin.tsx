@@ -13,7 +13,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       return redirect("/admin/login");
     }
   } else {
-    if (url.pathname !== "/admin/dashboard") {
+    if (!url.pathname.startsWith("/admin/dashboard")) {
       return redirect("/admin/dashboard");
     }
   }

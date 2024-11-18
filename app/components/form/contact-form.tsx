@@ -1,4 +1,4 @@
-import { BuildingOffice2Icon, EnvelopeIcon, PhoneIcon } from "./icons";
+import { BuildingOffice2Icon, EnvelopeIcon, PhoneIcon } from "../icons";
 
 export default function ContactForm() {
   return (
