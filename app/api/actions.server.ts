@@ -6,6 +6,7 @@ import {
   PackageType,
   Package,
   Shipment,
+  Contact,
 } from "~/types";
 
 const baseUrl = process.env.STRAPI_URL;
@@ -1613,5 +1614,54 @@ export async function deleteTrackings(ids: number[], request: Request) {
   } catch (error) {
     console.error("Error deleting trackings:", error);
     throw error;
+  }
+}
+
+export async function saveContact(contactData: Contact) {
+  const url = `${baseUrl}/api/contacts`;
+
+  try {
+    console.log("Attempting to save contact with data:", contactData);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        data: contactData,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("API Error Response:", errorData);
+
+      // Handle validation errors
+      if (errorData.error?.details?.errors) {
+        const errors = errorData.error.details.errors;
+        const errorMessages = errors.map((e: any) => e.message).join(", ");
+        throw new Error(`Validation errors: ${errorMessages}`);
+      }
+
+      throw new Error(
+        errorData.error?.message || "Failed to submit contact form"
+      );
+    }
+
+    const result = await response.json();
+    return {
+      success: true,
+      action: "create",
+      data: result.data,
+      meta: result.meta || {}
+    };
+  } catch (error) {
+    console.error("Error saving contact:", error);
+    return {
+      success: false,
+      action: "create",
+      error: error instanceof Error ? error.message : "Failed to submit contact form"
+    };
   }
 }

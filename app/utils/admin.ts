@@ -67,7 +67,6 @@ export const entityConfigs: Record<string, EntityConfig> = {
       return {
         id: item.id,
         "Tracking Number": item.trackingNumber,
-        Status: item.shipmentStatus,
         "Shipping Cost": packages.reduce((sum, pkg) => sum + (pkg?.packageCost || 0), 0),
         Packages: packages
           .map((p: Package) => p?.packageType?.name)

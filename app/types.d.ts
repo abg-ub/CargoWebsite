@@ -416,3 +416,11 @@ export interface PaginationMeta {
     total: number;
   };
 }
+
+export interface Contact {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: number;
+  message: string;
+}
