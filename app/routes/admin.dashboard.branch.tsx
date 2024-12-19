@@ -1,15 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   json,
   type ActionFunction,
   type LoaderFunctionArgs,
 } from "@remix-run/node";
-import {
-  useLoaderData,
-  useNavigate,
-  useSearchParams,
-  useFetcher,
-} from "@remix-run/react";
+import { useLoaderData, useFetcher } from "@remix-run/react";
 import Table from "~/components/form/table";
 import ModalDialog from "~/components/modal-dialog";
 import BranchForm from "~/components/form/branch-form";
@@ -109,10 +104,7 @@ export default function AdminDashboardBranch() {
   const [selectedBranch, setSelectedBranch] = useState<Branch | undefined>();
   const { data } = useLoaderData<typeof loader>();
   const { data: branchesData, meta } = data;
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const fetcher = useFetcher();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [itemsToDelete, setItemsToDelete] = useState<(string | number)[]>([]);
@@ -126,41 +118,14 @@ export default function AdminDashboardBranch() {
     location: `${branch.city}, ${branch.country}`,
   }));
 
-  const handleSearch = useCallback(
-    (query: string) => {
-      const params = new URLSearchParams(searchParams);
-      if (query) {
-        params.set("search", query);
-      } else {
-        params.delete("search");
-      }
-      params.set("page", "1"); // Reset to first page when searching
-      navigate(`?${params.toString()}`);
-    },
-    [searchParams, navigate]
-  );
-
-  const handlePageSizeChange = (newSize: number) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("pageSize", newSize.toString());
-    params.set("page", "1");
-    navigate(`?${params.toString()}`);
-  };
-
-  const handleEdit = (displayBranch: any) => {
+  const handleEdit = (displayBranch: Branch) => {
     const originalBranch = branchesData.find(
       (b: Branch) => b.id === displayBranch.id
     );
-
     if (!originalBranch) {
-      console.error("Branch not found", {
-        displayBranch,
-        availableBranches: branchesData,
-      });
-      toast.error("Unable to edit branch: Branch data not found");
+      toast.error("Branch not found");
       return;
     }
-
     setSelectedBranch(originalBranch);
     setModalOpen(true);
   };
@@ -178,7 +143,6 @@ export default function AdminDashboardBranch() {
 
   const handleConfirmDelete = () => {
     setIsDeleting(true);
-    setIsSubmitting(true);
     setDeleteConfirmOpen(false);
 
     const formData = new FormData();
@@ -192,7 +156,6 @@ export default function AdminDashboardBranch() {
   // Handle fetcher states
   useEffect(() => {
     if (fetcher.state === "idle" && fetcher.data && !hasToastShown) {
-      setIsSubmitting(false);
       setIsDeleting(false);
 
       if (fetcher.data.success) {
@@ -222,18 +185,9 @@ export default function AdminDashboardBranch() {
     }
   }, [fetcher.state, fetcher.data, selectedBranch, isDeleting, hasToastShown]);
 
-  const handleSubmit = (formData: FormData) => {
-    setIsSubmitting(true);
-    setHasToastShown(false); // Reset toast flag before new submission
-    fetcher.submit(formData, {
-      method: selectedBranch ? "PUT" : "POST",
-    });
-  };
-
   const handleCloseModal = () => {
     setModalOpen(false);
     setSelectedBranch(undefined);
-    setIsSubmitting(false);
   };
 
   return (
@@ -242,19 +196,14 @@ export default function AdminDashboardBranch() {
         title="Branches"
         description="A list of all branches in your account."
         buttonText="Add branch"
-        onButtonClick={() => {
-          setSelectedBranch(undefined); // Clear any selected branch
-          setModalOpen(true);
-        }}
+        onButtonClick={() => setModalOpen(true)}
         data={branchesDisplay}
         pageSize={meta.pagination.pageSize}
-        onPageSizeChange={handlePageSizeChange}
-        onSearch={handleSearch}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
         currentPage={meta.pagination.page}
         total={meta.pagination.total}
         pageCount={meta.pagination.pageCount}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
         searchPlaceholder="Search name/location"
       />
       <ModalDialog

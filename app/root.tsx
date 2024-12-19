@@ -55,7 +55,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   const data = useLoaderData<typeof loader>();
   const location = useLocation();
-  console.log(data);
 
   const isAdminRoute = location.pathname.startsWith("/admin");
 

@@ -15,6 +15,7 @@ interface AlertProps {
   cancelLabel?: string;
   onConfirm: () => void;
   icon?: React.ReactNode;
+  disabled?: boolean;
 }
 
 export default function Alert({
@@ -25,6 +26,7 @@ export default function Alert({
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
   onConfirm,
+  disabled = false,
   icon = (
     <ExclamationTriangleIcon
       aria-hidden="true"
@@ -65,6 +67,7 @@ export default function Alert({
               <button
                 type="button"
                 onClick={onConfirm}
+                disabled={disabled}
                 className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
               >
                 {confirmLabel}

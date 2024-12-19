@@ -1,5 +1,12 @@
 import { getSession } from "~/session.server";
-import { BranchData, CustomerData, ServicePointData } from "~/types";
+import {
+  BranchData,
+  CustomerData,
+  LocationData,
+  PackageType,
+  Package,
+  Shipment,
+} from "~/types";
 
 const baseUrl = process.env.STRAPI_URL;
 
@@ -454,28 +461,25 @@ export async function deleteBranches(
   }
 }
 
-export async function saveServicePoint(
-  servicePointData: ServicePointData,
+export async function saveLocation(
+  locationData: LocationData,
   request: Request
 ) {
-  const url = `${baseUrl}/api/service-points`;
+  const url = `${baseUrl}/api/locations`;
   const jwt = await getJwt(request);
 
   try {
     console.log(
       "Attempting to save service point with data:",
-      servicePointData
+      locationData
     );
 
     // Transform the data to match Strapi's relation format
     const transformedData = {
-      name: servicePointData.name,
-      address: servicePointData.address,
-      latitude: servicePointData.latitude,
-      longitude: servicePointData.longitude,
-      branch: {
-        connect: [parseInt(servicePointData.branchId as string)], // Convert to number and use connect format
-      },
+      name: locationData.name,
+      address: locationData.address,
+      latitude: locationData.latitude,
+      longitude: locationData.longitude,
     };
 
     console.log("Sending transformed data:", transformedData);
@@ -516,27 +520,24 @@ export async function saveServicePoint(
   }
 }
 
-export async function updateServicePoint(
-  servicePointData: ServicePointData,
+export async function updateLocation(
+  locationData: LocationData,
   request: Request
 ) {
   const jwt = await getJwt(request);
 
   try {
-    console.log("Updating service point with data:", servicePointData);
+    console.log("Updating service point with data:", locationData);
 
     // Use the documentId for the update
-    const url = `${baseUrl}/api/service-points/${servicePointData.documentId}`;
+    const url = `${baseUrl}/api/locations/${locationData.documentId}`;
 
     // Transform the data for Strapi
     const transformedData = {
-      name: servicePointData.name,
-      address: servicePointData.address,
-      latitude: servicePointData.latitude,
-      longitude: servicePointData.longitude,
-      branch: {
-        connect: [parseInt(servicePointData.branchId as string)],
-      },
+      name: locationData.name,
+      address: locationData.address,
+      latitude: locationData.latitude,
+      longitude: locationData.longitude,
     };
 
     console.log("Sending update request to:", url);
@@ -571,37 +572,37 @@ export async function updateServicePoint(
   }
 }
 
-export async function deleteServicePoints(
+export async function deleteLocations(
   ids: (string | number)[],
   request: Request
 ) {
   const jwt = await getJwt(request);
 
   try {
-    const servicePointsResponse = await fetch(`${baseUrl}/api/service-points`, {
+    const locationsResponse = await fetch(`${baseUrl}/api/locations`, {
       headers: {
         Authorization: `Bearer ${jwt}`,
       },
     });
 
-    if (!servicePointsResponse.ok) {
+    if (!locationsResponse.ok) {
       throw new Error("Failed to fetch service points");
     }
 
-    const servicePoints = await servicePointsResponse.json();
+    const locations = await locationsResponse.json();
     const documentIds = ids.map((id) => {
-      const servicePoint = servicePoints.data.find((sp: any) => sp.id === id);
-      if (!servicePoint) {
+      const location = locations.data.find((sp: any) => sp.id === id);
+      if (!location) {
         throw new Error(`Service point with id ${id} not found`);
       }
-      return servicePoint.documentId;
+      return location.documentId;
     });
 
     console.log("Starting deletion process for documentIds:", documentIds);
 
     const results = await Promise.all(
       documentIds.map(async (documentId) => {
-        const url = `${baseUrl}/api/service-points/${documentId}`;
+        const url = `${baseUrl}/api/locations/${documentId}`;
         const response = await fetch(url, {
           method: "DELETE",
           headers: {
@@ -634,6 +635,983 @@ export async function deleteServicePoints(
     return { success: true };
   } catch (error) {
     console.error("Error deleting service points:", error);
+    throw error;
+  }
+}
+
+// Add these new functions for Package Types
+export async function savePackageType(
+  packageType: PackageType,
+  request: Request
+): Promise<{ data: PackageType }> {
+  const jwt = await getJwt(request);
+  const url = `${baseUrl}/api/package-types`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify({ data: packageType }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Improved error handling with specific error messages
+      if (response.status === 400) {
+        throw new Error(data.error?.message || "Invalid package type data");
+      }
+      if (response.status === 401) {
+        throw new Error("Authentication required");
+      }
+      if (response.status === 403) {
+        throw new Error("You don't have permission to create package types");
+      }
+      if (response.status === 409) {
+        throw new Error("A package type with this name already exists");
+      }
+      throw new Error(data.error?.message || "Failed to save package type");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error saving package type:", error);
+    if (error instanceof TypeError) {
+      throw new Error("Network error occurred while saving package type");
+    }
+    throw error;
+  }
+}
+
+export async function updatePackageType(
+  packageType: PackageType,
+  request: Request
+): Promise<{ data: PackageType }> {
+  const jwt = await getJwt(request);
+
+  try {
+    console.log("Attempting to update package type with data:", packageType);
+
+    // First, fetch all package types to get the documentId
+    const packageTypesResponse = await fetch(`${baseUrl}/api/package-types`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    if (!packageTypesResponse.ok) {
+      throw new Error("Failed to fetch package types");
+    }
+
+    const packageTypes = await packageTypesResponse.json();
+
+    // Find the package type by id
+    const matchingPackageType = packageTypes.data.find(
+      (pt: PackageType) => pt.id === parseInt(packageType.id as unknown as string)
+    );
+
+    if (!matchingPackageType) {
+      throw new Error("Could not find package type to update");
+    }
+
+    const url = `${baseUrl}/api/package-types/${matchingPackageType.documentId}`;
+
+    // Remove ids from the data payload
+    const { id, documentId, ...updateData } = packageType;
+
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify({
+        data: updateData,
+      }),
+    });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      console.error("API Error Response:", responseData);
+      throw new Error(
+        responseData.error?.message ||
+          `Failed to update package type. Status: ${response.status}`
+      );
+    }
+
+    return responseData;
+  } catch (error) {
+    console.error("Error updating package type:", error);
+    throw error;
+  }
+}
+
+export async function deletePackageTypes(ids: number[], request: Request) {
+  const jwt = await getJwt(request);
+
+  try {
+    const packageTypesResponse = await fetch(`${baseUrl}/api/package-types`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    if (!packageTypesResponse.ok) {
+      throw new Error("Failed to fetch package types");
+    }
+
+    const packageTypes = await packageTypesResponse.json();
+    const documentIds = ids.map((id) => {
+      const packageType = packageTypes.data.find(
+        (pt: PackageType) => pt.id === id
+      );
+      if (!packageType) {
+        throw new Error(`Package type with id ${id} not found`);
+      }
+      return packageType.documentId;
+    });
+
+    console.log("Starting deletion process for documentIds:", documentIds);
+
+    const results = await Promise.all(
+      documentIds.map(async (documentId) => {
+        const url = `${baseUrl}/api/package-types/${documentId}`;
+        const response = await fetch(url, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(
+            errorData?.error?.message ||
+              `Failed to delete package type ${documentId}`
+          );
+        }
+
+        return response;
+      })
+    );
+
+    const allSuccessful = results.every((response) => response.ok);
+    if (!allSuccessful) {
+      throw new Error("Some deletions failed");
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting package types:", error);
+    throw error;
+  }
+}
+
+// Add these functions for Package management
+export async function savePackage(packageData: Package, request: Request) {
+  const jwt = await getJwt(request);
+  const url = `${baseUrl}/api/packages`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify({ data: packageData }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 400) {
+        throw new Error(data.error?.message || "Invalid package data");
+      }
+      if (response.status === 401) {
+        throw new Error("Authentication required");
+      }
+      if (response.status === 403) {
+        throw new Error("You don't have permission to create packages");
+      }
+      throw new Error(data.error?.message || "Failed to save package");
+    }
+
+   return data;
+  } catch (error) {
+    console.error("Error saving package:", error);
+    if (error instanceof TypeError) {
+      throw new Error("Network error occurred while saving package");
+    }
+    throw error;
+  }
+}
+
+export async function updatePackage(packageData: Package, request: Request) {
+  const jwt = await getJwt(request);
+
+  try {
+    // First, fetch all packages to get the documentId
+    const packagesResponse = await fetch(`${baseUrl}/api/packages`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    if (!packagesResponse.ok) {
+      throw new Error("Failed to fetch packages");
+    }
+
+    const packages = await packagesResponse.json();
+    const matchingPackage = packages.data.find(
+      (p: Package) => p.id === parseInt(packageData.id as unknown as string)
+    );
+
+    if (!matchingPackage) {
+      throw new Error("Could not find package to update");
+    }
+
+    const url = `${baseUrl}/api/packages/${matchingPackage.documentId}`;
+    const { id, documentId, ...updateData } = packageData;
+
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify({
+        data: updateData,
+      }),
+    });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        responseData.error?.message ||
+          `Failed to update package. Status: ${response.status}`
+      );
+    }
+
+    return responseData;
+  } catch (error) {
+    console.error("Error updating package:", error);
+    throw error;
+  }
+}
+
+export async function deletePackages(ids: number[], request: Request) {
+  const jwt = await getJwt(request);
+
+  try {
+    const packagesResponse = await fetch(`${baseUrl}/api/packages`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    if (!packagesResponse.ok) {
+      throw new Error("Failed to fetch packages");
+    }
+
+    const packages = await packagesResponse.json();
+    const documentIds = ids.map((id) => {
+      const pkg = packages.data.find((p: Package) => p.id === id);
+      if (!pkg) {
+        throw new Error(`Package with id ${id} not found`);
+      }
+      return pkg.documentId;
+    });
+
+    const results = await Promise.all(
+      documentIds.map(async (documentId) => {
+        const url = `${baseUrl}/api/packages/${documentId}`;
+        const response = await fetch(url, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(
+            errorData?.error?.message ||
+              `Failed to delete package ${documentId}`
+          );
+        }
+
+        return response;
+      })
+    );
+
+    const allSuccessful = results.every((response) => response.ok);
+    if (!allSuccessful) {
+      throw new Error("Some deletions failed");
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting packages:", error);
+    throw error;
+  }
+}
+
+// Add this function at the top of the file
+async function generateTrackingNumber(): Promise<string> {
+  const prefix = "TN";
+  const timestamp = new Date().toISOString()
+    .replace(/[-:]/g, '')  // Remove dashes and colons
+    .replace(/[T.]/g, '')  // Remove T and decimal point
+    .slice(0, 14);         // Get YYYYMMDDHHmmss
+  
+  
+  return `${prefix}${timestamp}`;
+}
+
+export async function saveShipment(shipmentData: Shipment, request: Request) {
+  const jwt = await getJwt(request);
+  const url = `${baseUrl}/api/shipments`;
+
+  try {
+    // Try up to 3 times to create a shipment with a unique tracking number
+    let attempts = 0;
+    const maxAttempts = 3;
+    let savedShipment = null;
+
+    while (attempts < maxAttempts && !savedShipment) {
+      try {
+        // Generate new tracking number
+        const trackingNumber = await generateTrackingNumber();
+        
+        // First, save all packages with negative IDs (new packages)
+        const savedPackageDocumentIds = [];
+        for (const pkg of shipmentData.packages) {
+          if (typeof pkg === 'object' && pkg.id && pkg.id < 0) {
+            const packageData = {
+              content: pkg.content,
+              netWeight: pkg.netWeight,
+              value: pkg.value,
+              packageStatus: pkg.packageStatus,
+              pricePerKg: pkg.pricePerKg,
+              packageCost: pkg.packageCost,
+              packageType: {
+                connect: [pkg.packageType?.documentId]
+              }
+            };
+            
+            const packageResponse = await fetch(`${baseUrl}/api/packages`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${jwt}`,
+              },
+              body: JSON.stringify({
+                data: packageData
+              }),
+            });
+
+            if (!packageResponse.ok) {
+              const error = await packageResponse.json();
+              console.error("Package creation failed:", error);
+              throw new Error("Failed to save package");
+            }
+
+            const savedPackage = await packageResponse.json();
+            savedPackageDocumentIds.push(savedPackage.data.documentId);
+          } else {
+            savedPackageDocumentIds.push(pkg.documentId);
+          }
+        }
+
+        // Prepare shipment data
+        const shipmentPayload = {
+          trackingNumber,
+          shippingDate: shipmentData.shippingDate,
+          deliveryDate: shipmentData.deliveryDate,
+          shipmentType: shipmentData.shipmentType,
+          transferMode: shipmentData.transferMode,
+          shipmentCost: shipmentData.shipmentCost,
+          sender: {
+            connect: [shipmentData.sender]
+          },
+          receiver: {
+            connect: [shipmentData.receiver]
+          },
+          originAddress: {
+            connect: [shipmentData.originAddress]
+          },
+          destinationAddress: {
+            connect: [shipmentData.destinationAddress]
+          },
+          branch: {
+            connect: [shipmentData.branch]
+          },
+          packages: {
+            connect: savedPackageDocumentIds
+          }
+        };
+
+        console.log("Attempting to create shipment with tracking number:", trackingNumber);
+
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${jwt}`,
+          },
+          body: JSON.stringify({ data: shipmentPayload }),
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+          // Check if error is due to duplicate tracking number
+          if (data.error?.message?.includes('unique') || 
+              data.error?.details?.errors?.some((e: any) => e.message.includes('unique'))) {
+            console.log("Duplicate tracking number found, retrying...");
+            attempts++;
+            continue;
+          }
+          // If it's not a uniqueness error, throw it
+          throw new Error(data.error?.message || "Failed to save shipment");
+        }
+
+        savedShipment = data;
+        break;
+
+      } catch (error) {
+        if (attempts >= maxAttempts - 1) {
+          throw error;
+        }
+        attempts++;
+      }
+    }
+
+    if (!savedShipment) {
+      throw new Error("Failed to generate unique tracking number after multiple attempts");
+    }
+
+    return savedShipment;
+
+  } catch (error) {
+    console.error("Error saving shipment:", error);
+    throw error;
+  }
+}
+
+export async function updateShipment(shipmentData: Shipment, request: Request) {
+  const jwt = await getJwt(request);
+
+  try {
+    // First, fetch the existing shipment to get current packages
+    const shipmentsResponse = await fetch(`${baseUrl}/api/shipments`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    if (!shipmentsResponse.ok) {
+      throw new Error("Failed to fetch shipments");
+    }
+
+    const shipments: { data: Shipment[] } = await shipmentsResponse.json();
+    const existingShipment = shipments.data.find(
+      (s) => s.id === shipmentData.id
+    );
+
+    if (!existingShipment) {
+      throw new Error("Could not find shipment to update");
+    }
+
+    // Get the documentIds of existing packages (with null check)
+    const existingPackageIds = existingShipment.packages 
+      ? existingShipment.packages.map((pkg: Package) => pkg.documentId).filter(Boolean)
+      : [];
+    
+    // Get the documentIds of packages in the updated data (with null checks)
+    const updatedPackageIds = Array.isArray(shipmentData.packages)
+      ? shipmentData.packages
+          .filter(pkg => pkg && typeof pkg === 'object' && pkg.id && pkg.id > 0)
+          .map(pkg => pkg.documentId)
+          .filter(Boolean)
+      : [];
+
+    // Find packages that need to be deleted
+    const packagesToDelete = existingPackageIds.filter(
+      (id) => id && !updatedPackageIds.includes(id)
+    );
+
+    // Delete removed packages
+    if (packagesToDelete.length > 0) {
+      console.log("Deleting packages:", packagesToDelete);
+      await Promise.all(
+        packagesToDelete.map(async (documentId) => {
+          if (!documentId) return;
+          
+          const url = `${baseUrl}/api/packages/${documentId}`;
+          try {
+            const response = await fetch(url, {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${jwt}`,
+              },
+            });
+
+            if (!response.ok) {
+              console.error(`Failed to delete package ${documentId}`);
+            }
+          } catch (error) {
+            console.error(`Error deleting package ${documentId}:`, error);
+          }
+        })
+      );
+    }
+
+    // Handle new packages (negative IDs) and update existing ones
+    const savedPackageDocumentIds = [];
+    if (Array.isArray(shipmentData.packages)) {
+      for (const pkg of shipmentData.packages) {
+        if (pkg && typeof pkg === 'object') {
+          if (pkg.id && pkg.id < 0) {
+            // This is a new package
+            const packageData = {
+              content: pkg.content,
+              netWeight: pkg.netWeight,
+              value: pkg.value,
+              packageStatus: pkg.packageStatus,
+              pricePerKg: pkg.pricePerKg,
+              packageCost: pkg.packageCost,
+              packageType: pkg.packageType?.documentId ? {
+                connect: [pkg.packageType.documentId]
+              } : undefined
+            };
+            
+            try {
+              const packageResponse = await fetch(`${baseUrl}/api/packages`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${jwt}`,
+                },
+                body: JSON.stringify({
+                  data: packageData
+                }),
+              });
+
+              if (!packageResponse.ok) {
+                const error = await packageResponse.json();
+                console.error("Package creation failed:", error);
+                throw new Error("Failed to save package");
+              }
+
+              const savedPackage = await packageResponse.json();
+              if (savedPackage.data?.documentId) {
+                savedPackageDocumentIds.push(savedPackage.data.documentId);
+              }
+            } catch (error) {
+              console.error("Error creating new package:", error);
+              throw error;
+            }
+          } else if (pkg.id && pkg.id > 0) {
+            // This is an existing package that needs to be updated
+            try {
+              const packageData = {
+                content: pkg.content,
+                netWeight: pkg.netWeight,
+                value: pkg.value,
+                packageStatus: pkg.packageStatus,
+                pricePerKg: pkg.pricePerKg,
+                packageCost: pkg.packageCost,
+                packageType: pkg.packageType?.documentId ? {
+                  connect: [pkg.packageType.documentId]
+                } : undefined
+              };
+
+              const updateUrl = `${baseUrl}/api/packages/${pkg.documentId}`;
+              const updateResponse = await fetch(updateUrl, {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${jwt}`,
+                },
+                body: JSON.stringify({
+                  data: packageData
+                }),
+              });
+
+              if (!updateResponse.ok) {
+                const error = await updateResponse.json();
+                console.error(`Failed to update package ${pkg.documentId}:`, error);
+                throw new Error(`Failed to update package ${pkg.documentId}`);
+              }
+
+              savedPackageDocumentIds.push(pkg.documentId);
+            } catch (error) {
+              console.error(`Error updating package ${pkg.documentId}:`, error);
+              throw error;
+            }
+          }
+        }
+      }
+    }
+
+    // Prepare shipment update payload
+    const shipmentPayload = {
+      shippingDate: shipmentData.shippingDate,
+      deliveryDate: shipmentData.deliveryDate,
+      shipmentType: shipmentData.shipmentType,
+      transferMode: shipmentData.transferMode,
+      shipmentCost: shipmentData.shipmentCost,
+      sender: shipmentData.sender ? {
+        connect: [shipmentData.sender]
+      } : undefined,
+      receiver: shipmentData.receiver ? {
+        connect: [shipmentData.receiver]
+      } : undefined,
+      originAddress: shipmentData.originAddress ? {
+        connect: [shipmentData.originAddress]
+      } : undefined,
+      destinationAddress: shipmentData.destinationAddress ? {
+        connect: [shipmentData.destinationAddress]
+      } : undefined,
+      branch: shipmentData.branch ? {
+        connect: [shipmentData.branch]
+      } : undefined,
+      packages: savedPackageDocumentIds.length > 0 ? {
+        set: savedPackageDocumentIds
+      } : undefined
+    };
+
+    // Update the shipment
+    const url = `${baseUrl}/api/shipments/${existingShipment.documentId}`;
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify({
+        data: shipmentPayload,
+      }),
+    });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      console.error("Failed to update shipment:", responseData);
+      throw new Error(
+        responseData.error?.message ||
+          `Failed to update shipment. Status: ${response.status}`
+      );
+    }
+
+    return responseData;
+  } catch (error) {
+    console.error("Error updating shipment:", error);
+    throw error;
+  }
+}
+
+export async function deleteShipments(ids: number[], request: Request) {
+  const jwt = await getJwt(request);
+
+  try {
+    // First, fetch all shipments to get documentIds and package information
+    const shipmentsResponse = await fetch(`${baseUrl}/api/shipments`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    if (!shipmentsResponse.ok) {
+      throw new Error("Failed to fetch shipments");
+    }
+
+    const shipments: { data: Shipment[] } = await shipmentsResponse.json();
+    
+    // Get shipments to delete and ensure they exist
+    const shipmentsToDelete = shipments.data
+      .filter((s) => ids.includes(s.id))
+      .filter((s) => s !== null && s !== undefined);
+
+    if (shipmentsToDelete.length === 0) {
+      throw new Error("No valid shipments found to delete");
+    }
+    
+    // Collect all packages that need to be deleted
+    const packagesToDelete = new Set<string>();
+    shipmentsToDelete.forEach((shipment: Shipment) => {
+      // Check if shipment and packages exist
+      if (shipment && Array.isArray(shipment.packages)) {
+        shipment.packages.forEach((pkg: Package) => {
+          if (pkg && pkg.documentId) {
+            packagesToDelete.add(pkg.documentId);
+          }
+        });
+      }
+    });
+
+    // Delete all packages first
+    if (packagesToDelete.size > 0) {
+      const packageResults = await Promise.all(
+        Array.from(packagesToDelete).map(async (documentId) => {
+          const url = `${baseUrl}/api/packages/${documentId}`;
+          try {
+            const response = await fetch(url, {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${jwt}`,
+              },
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => null);
+              console.error(`Failed to delete package ${documentId}:`, errorData);
+            }
+
+            return response;
+          } catch (error) {
+            console.error(`Error deleting package ${documentId}:`, error);
+            return null;
+          }
+        })
+      );
+
+      const allPackagesDeleted = packageResults
+        .filter(response => response !== null)
+        .every(response => response.ok);
+        
+      if (!allPackagesDeleted) {
+        console.warn("Some packages could not be deleted");
+      }
+    }
+
+    // Then delete the shipments
+    const shipmentResults = await Promise.all(
+      shipmentsToDelete.map(async (shipment: Shipment) => {
+        if (!shipment.documentId) {
+          console.error("Missing documentId for shipment:", shipment);
+          return null;
+        }
+
+        const url = `${baseUrl}/api/shipments/${shipment.documentId}`;
+        try {
+          const response = await fetch(url, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${jwt}`,
+            },
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            console.error(`Failed to delete shipment ${shipment.documentId}:`, errorData);
+          }
+
+          return response;
+        } catch (error) {
+          console.error(`Error deleting shipment ${shipment.documentId}:`, error);
+          return null;
+        }
+      })
+    );
+
+    const allSuccessful = shipmentResults
+      .filter(response => response !== null)
+      .every(response => response?.ok);
+
+    if (!allSuccessful) {
+      throw new Error("Some shipment deletions failed");
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting shipments:", error);
+    throw error;
+  }
+}
+
+export async function saveTracking(trackingData: any, request: Request) {
+  const jwt = await getJwt(request);
+  const url = `${baseUrl}/api/trackings`;
+
+  try {
+    console.log("Received tracking data:", trackingData);
+
+    const transformedData = {
+      shipmentStatus: trackingData.shipmentStatus,
+      shipment: trackingData.shipment ? {
+        connect: [trackingData.shipment]
+      } : undefined,
+      location: trackingData.location ? {
+        connect: [trackingData.location]
+      } : undefined
+    };
+
+    console.log("Transformed data:", transformedData);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify({
+        data: transformedData,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("API Error Response:", errorData);
+      throw new Error(
+        errorData.error?.message || "Failed to save tracking"
+      );
+    }
+
+    const result = await response.json();
+    // Return the structure that admin dashboard expects
+    return {
+      success: true,
+      action: "create",
+      data: result.data,
+      meta: result.meta || {}
+    };
+  } catch (error) {
+    console.error("Error saving tracking:", error);
+    return {
+      success: false,
+      action: "create",
+      error: error instanceof Error ? error.message : "Failed to save tracking"
+    };
+  }
+}
+
+export async function updateTracking(trackingData: any, request: Request) {
+  const jwt = await getJwt(request);
+
+  try {
+    const transformedData = {
+      shipmentStatus: trackingData.shipmentStatus,
+      shipment: trackingData.shipment ? {
+        connect: [trackingData.shipment]
+      } : undefined,
+      location: trackingData.location ? {
+        connect: [trackingData.location]
+      } : undefined
+    };
+
+    const url = `${baseUrl}/api/trackings/${trackingData.documentId}`;
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify({
+        data: transformedData,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("API Error Response:", errorData);
+      throw new Error(
+        errorData.error?.message || `Failed to update tracking`
+      );
+    }
+
+    const result = await response.json();
+    // Return the structure that admin dashboard expects
+    return {
+      success: true,
+      action: "update",
+      data: result.data,
+      meta: result.meta || {}
+    };
+  } catch (error) {
+    console.error("Error updating tracking:", error);
+    return {
+      success: false,
+      action: "update",
+      error: error instanceof Error ? error.message : "Failed to update tracking"
+    };
+  }
+}
+
+export async function deleteTrackings(ids: number[], request: Request) {
+  const jwt = await getJwt(request);
+
+  try {
+    // First, fetch all trackings to get documentIds
+    const trackingsResponse = await fetch(`${baseUrl}/api/trackings`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    if (!trackingsResponse.ok) {
+      throw new Error("Failed to fetch trackings");
+    }
+
+    const trackings = await trackingsResponse.json();
+    
+    // Get trackings to delete and ensure they exist
+    const trackingsToDelete = trackings.data
+      .filter((t: any) => ids.includes(t.id))
+      .filter((t: any) => t !== null && t !== undefined);
+
+    if (trackingsToDelete.length === 0) {
+      throw new Error("No valid trackings found to delete");
+    }
+
+    // Delete the trackings
+    const results = await Promise.all(
+      trackingsToDelete.map(async (tracking: any) => {
+        if (!tracking.documentId) {
+          console.error("Missing documentId for tracking:", tracking);
+          return null;
+        }
+
+        const url = `${baseUrl}/api/trackings/${tracking.documentId}`;
+        try {
+          const response = await fetch(url, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${jwt}`,
+            },
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            console.error(`Failed to delete tracking ${tracking.documentId}:`, errorData);
+          }
+
+          return response;
+        } catch (error) {
+          console.error(`Error deleting tracking ${tracking.documentId}:`, error);
+          return null;
+        }
+      })
+    );
+
+    const allSuccessful = results
+      .filter(response => response !== null)
+      .every(response => response?.ok);
+
+    if (!allSuccessful) {
+      throw new Error("Some tracking deletions failed");
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting trackings:", error);
     throw error;
   }
 }

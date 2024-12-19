@@ -1,4 +1,10 @@
-export default function SearchField() {
+import type { FetcherWithComponents } from "@remix-run/react";
+
+interface SearchFieldProps {
+  fetcher: FetcherWithComponents<any>;
+}
+
+export default function SearchField({ fetcher }: SearchFieldProps) {
   return (
     <div className="shadow sm:rounded-lg max-w-3xl mx-auto">
       <div className="px-4 py-5 sm:p-6">
@@ -10,7 +16,7 @@ export default function SearchField() {
             Enter your tracking number to see the current status of your order.
           </p>
         </div>
-        <form className="mt-5 sm:flex sm:items-center">
+        <fetcher.Form className="mt-5 sm:flex sm:items-center">
           <div className="w-full sm:max-w-xs">
             <label htmlFor="tracking-number" className="sr-only">
               Tracking Number
@@ -29,7 +35,7 @@ export default function SearchField() {
           >
             Track Order
           </button>
-        </form>
+        </fetcher.Form>
       </div>
     </div>
   );

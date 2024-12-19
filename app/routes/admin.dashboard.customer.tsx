@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   json,
   type ActionFunction,
@@ -8,7 +8,6 @@ import {
   useActionData,
   useLoaderData,
   useNavigate,
-  useSearchParams,
   useSubmit,
 } from "@remix-run/react";
 import ModalDialog from "~/components/modal-dialog";
@@ -127,17 +126,11 @@ export default function AdminDashboardCustomer() {
   const { data } = useLoaderData<typeof loader>();
   const { data: customersData, meta } = data;
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const submit = useSubmit();
-
-  // Create a mapped version of customers for display while keeping original data
-  const customersDisplay = customersData.map((customer: any) => ({
-    id: customer.id,
-    name: `${customer.firstName} ${customer.lastName}`,
-    country: customer.country,
-    email: customer.email,
-    phone: customer.phone,
-  }));
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [itemsToDelete, setItemsToDelete] = useState<(string | number)[]>([]);
 
   const actionData = useActionData<{
     errors?: {
@@ -149,7 +142,14 @@ export default function AdminDashboardCustomer() {
     success?: boolean;
   }>();
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Create a mapped version of customers for display
+  const customersDisplay = customersData.map((customer: Customer) => ({
+    id: customer.id,
+    name: `${customer.firstName} ${customer.lastName}`,
+    country: customer.country,
+    email: customer.email,
+    phone: customer.phone,
+  }));
 
   // Handle success state
   useEffect(() => {
@@ -164,7 +164,6 @@ export default function AdminDashboardCustomer() {
         setSelectedCustomer(undefined);
       }
       setIsSubmitting(false);
-      // Force a refresh of the data
       navigate(".", { replace: true });
     }
   }, [
@@ -183,15 +182,11 @@ export default function AdminDashboardCustomer() {
     }
   }, [actionData?.errors, isSubmitting]);
 
-  // Add state for deletion status
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  // Handle success/error messages for deletion
+  // Handle deletion success/error
   useEffect(() => {
     if (actionData?.success && isDeleting) {
       toast.success("Customers deleted successfully!");
       setIsDeleting(false);
-      // Force a refresh of the data
       navigate(".", { replace: true });
     } else if (actionData?.errors && isDeleting) {
       toast.error(
@@ -201,28 +196,6 @@ export default function AdminDashboardCustomer() {
     }
   }, [actionData, isDeleting, navigate]);
 
-  const handleSearch = useCallback(
-    (query: string) => {
-      const params = new URLSearchParams(searchParams);
-      if (query) {
-        params.set("search", query);
-      } else {
-        params.delete("search");
-      }
-      params.set("page", "1"); // Reset to first page when searching
-      navigate(`?${params.toString()}`);
-    },
-    [searchParams, navigate]
-  );
-
-  const handlePageSizeChange = (newSize: number) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("pageSize", newSize.toString());
-    params.set("page", "1");
-    navigate(`?${params.toString()}`);
-  };
-
-  // Modify handleEdit to be more defensive
   const handleEdit = (displayCustomer: any) => {
     const originalCustomer = customersData.find(
       (c: Customer) => c.id === displayCustomer.id
@@ -235,20 +208,9 @@ export default function AdminDashboardCustomer() {
     setTimeout(() => setModalOpen(true), 0);
   };
 
-  const handleCloseModal = () => {
-    setModalOpen(false);
-    setTimeout(() => setSelectedCustomer(undefined), 0);
-  };
-
-  // Add new state for delete confirmation
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [itemsToDelete, setItemsToDelete] = useState<(string | number)[]>([]);
-
   const handleDelete = async (ids: (string | number)[]) => {
-    // Prevent multiple submissions
     if (isDeleting) return;
 
-    // Validate IDs
     const validIds = ids.filter((id) => id != null);
     if (validIds.length === 0) {
       toast.error("No valid items selected for deletion");
@@ -273,6 +235,11 @@ export default function AdminDashboardCustomer() {
     });
   };
 
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setTimeout(() => setSelectedCustomer(undefined), 0);
+  };
+
   return (
     <>
       <Table
@@ -283,13 +250,11 @@ export default function AdminDashboardCustomer() {
         onButtonClick={() => setModalOpen(true)}
         data={customersDisplay}
         pageSize={meta.pagination.pageSize}
-        onPageSizeChange={handlePageSizeChange}
-        onSearch={handleSearch}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
         currentPage={meta.pagination.page}
         total={meta.pagination.total}
         pageCount={meta.pagination.pageCount}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
       />
       <ModalDialog open={modalOpen} setOpen={handleCloseModal}>
         <CustomerForm

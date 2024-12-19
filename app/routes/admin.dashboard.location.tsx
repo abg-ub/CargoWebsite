@@ -1,22 +1,17 @@
 import { ActionFunction, json, type LoaderFunctionArgs } from "@remix-run/node";
-import {
-  useLoaderData,
-  useNavigate,
-  useSearchParams,
-  useFetcher,
-} from "@remix-run/react";
+import { useLoaderData, useFetcher } from "@remix-run/react";
 import Table from "~/components/form/table";
-import { getServicePoints, getBranches } from "~/api/loaders.server";
+import { getLocations } from "~/api/loaders.server";
 import { useState, useEffect } from "react";
 import ModalDialog from "~/components/modal-dialog";
 import Alert from "~/components/alert";
 import { toast } from "react-toastify";
-import { Branch, ServicePointData, type ServicePoint } from "~/types";
-import ServicePointForm from "~/components/form/service-point-form";
+import { LocationData, type Location } from "~/types";
+import LocationForm from "~/components/form/location-form";
 import {
-  deleteServicePoints,
-  saveServicePoint,
-  updateServicePoint,
+  deleteLocations,
+  saveLocation,
+  updateLocation,
 } from "~/api/actions.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -26,15 +21,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const searchQuery = url.searchParams.get("search") ?? "";
 
   try {
-    // Load both service points and all branches
-    const [servicePointsData, branchesResponse] = await Promise.all([
-      getServicePoints(request, page, pageSize, searchQuery),
-      getBranches(request, 1, 1000, ""), // Load all branches with a large page size
-    ]);
-
+    // Load both locations and all branches
+    const locationsData = await getLocations(
+      request,
+      page,
+      pageSize,
+      searchQuery
+    );
     return json({
-      data: servicePointsData,
-      branches: branchesResponse.data, // Access the branches data directly
+      data: locationsData,
     });
   } catch (error) {
     console.error("Loader error:", error);
@@ -48,7 +43,7 @@ export const action: ActionFunction = async ({ request }) => {
   if (request.method.toLowerCase() === "delete") {
     try {
       const ids = JSON.parse(formData.get("ids") as string);
-      await deleteServicePoints(ids, request);
+      await deleteLocations(ids, request);
       return json({ success: true });
     } catch (error) {
       return json(
@@ -58,7 +53,7 @@ export const action: ActionFunction = async ({ request }) => {
               message:
                 error instanceof Error
                   ? error.message
-                  : "Failed to delete service points",
+                  : "Failed to delete locations",
               type: "api_error",
             },
           },
@@ -69,30 +64,29 @@ export const action: ActionFunction = async ({ request }) => {
   }
 
   const rawData = Object.fromEntries(formData);
-  const servicePointData: ServicePointData = {
+  const locationData: LocationData = {
     name: rawData.name?.toString().trim() ?? "",
     address: rawData.address?.toString().trim() ?? "",
     latitude: parseFloat(rawData.latitude?.toString() ?? "0"),
     longitude: parseFloat(rawData.longitude?.toString() ?? "0"),
-    branchId: rawData.branchId?.toString() ?? "",
   };
 
   if (rawData.id) {
-    servicePointData.id = rawData.id.toString();
+    locationData.id = rawData.id.toString();
   }
 
   if (rawData.documentId) {
-    servicePointData.documentId = rawData.documentId.toString();
+    locationData.documentId = rawData.documentId.toString();
   }
 
   try {
     if (request.method.toLowerCase() === "put") {
-      if (!servicePointData.documentId) {
-        throw new Error("Service Point documentId is required for updates");
+      if (!locationData.documentId) {
+        throw new Error("Location documentId is required for updates");
       }
-      await updateServicePoint(servicePointData, request);
+      await updateLocation(locationData, request);
     } else {
-      await saveServicePoint(servicePointData, request);
+      await saveLocation(locationData, request);
     }
 
     return json({ success: true });
@@ -115,71 +109,46 @@ export const action: ActionFunction = async ({ request }) => {
   }
 };
 
-export default function ServicePoint() {
-  const { data, branches } = useLoaderData<typeof loader>();
-  const { data: servicePointsData, meta } = data;
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+export default function Location() {
+  const { data } = useLoaderData<typeof loader>();
+  const { data: locationsData, meta } = data;
   const fetcher = useFetcher();
+
+  // State management
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedServicePoint, setSelectedServicePoint] = useState<
-    ServicePoint | undefined
+  const [selectedLocation, setSelectedLocation] = useState<
+    Location | undefined
   >();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [itemsToDelete, setItemsToDelete] = useState<(string | number)[]>([]);
   const [hasToastShown, setHasToastShown] = useState(false);
 
-  // Transform branches data for the ComboBox
-  const branchOptions = branches.map((branch: Branch) => ({
-    id: branch.id,
-    name: branch.name,
-  }));
-
-  // Create a mapped version of service points for display
-  const servicePointsDisplay = servicePointsData.map((point: ServicePoint) => ({
+  // Create a mapped version of locations for display
+  const locationsDisplay = locationsData.map((point: Location) => ({
     id: point.id,
     name: point.name,
-    branch: point.branch?.name ?? "-",
     latitude: point.latitude,
     longitude: point.longitude,
   }));
 
-  const handleSearch = (query: string) => {
-    const params = new URLSearchParams(searchParams);
-    if (query) {
-      params.set("search", query);
-    } else {
-      params.delete("search");
-    }
-    params.set("page", "1"); // Reset to first page when searching
-    navigate(`?${params.toString()}`);
-  };
+  console.log(locationsData)
 
-  const handlePageSizeChange = (newSize: number) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("pageSize", newSize.toString());
-    params.set("page", "1");
-    navigate(`?${params.toString()}`);
-  };
-
-  const handleEdit = (displayPoint: any) => {
-    const originalPoint = servicePointsData.find(
-      (p: ServicePoint) => p.id === displayPoint.id
+  const handleEdit = (displayPoint: Location) => {
+    const originalPoint = locationsData.find(
+      (p: Location) => p.id === displayPoint.id
     );
 
     if (!originalPoint) {
-      console.error("Service point not found:", {
+      console.error("Location not found:", {
         displayPoint,
-        allPoints: servicePointsData,
+        allPoints: locationsData,
       });
-      toast.error("Unable to edit service point: Data not found");
+      toast.error("Unable to edit location: Data not found");
       return;
     }
 
-    console.log("Found service point for editing:", originalPoint);
-
-    setSelectedServicePoint(originalPoint);
+    setSelectedLocation(originalPoint);
     setModalOpen(true);
   };
 
@@ -206,13 +175,7 @@ export default function ServicePoint() {
     });
   };
 
-  const handleSubmit = (formData: FormData) => {
-    setHasToastShown(false);
-    fetcher.submit(formData, {
-      method: selectedServicePoint ? "PUT" : "POST",
-    });
-  };
-
+  // Handle fetcher state changes
   useEffect(() => {
     if (fetcher.state === "idle" && fetcher.data && !hasToastShown) {
       setIsDeleting(false);
@@ -221,14 +184,14 @@ export default function ServicePoint() {
         setHasToastShown(true);
         toast.success(
           isDeleting
-            ? "Service points deleted successfully!"
-            : selectedServicePoint
-            ? "Service point updated successfully!"
-            : "Service point created successfully!"
+            ? "Locations deleted successfully!"
+            : selectedLocation
+            ? "Location updated successfully!"
+            : "Location created successfully!"
         );
 
         setModalOpen(false);
-        setSelectedServicePoint(undefined);
+        setSelectedLocation(undefined);
         setDeleteConfirmOpen(false);
       } else if (fetcher.data.errors) {
         setHasToastShown(true);
@@ -244,7 +207,7 @@ export default function ServicePoint() {
   }, [
     fetcher.state,
     fetcher.data,
-    selectedServicePoint,
+    selectedLocation,
     isDeleting,
     hasToastShown,
   ]);
@@ -252,22 +215,20 @@ export default function ServicePoint() {
   return (
     <>
       <Table
-        title="Service Points"
-        description="List of available service points"
-        buttonText="Create Service Point"
+        title="Locations"
+        description="List of available locations"
+        buttonText="Create Location"
         onButtonClick={() => {
-          setSelectedServicePoint(undefined);
+          setSelectedLocation(undefined);
           setModalOpen(true);
         }}
-        data={servicePointsDisplay}
+        data={locationsDisplay}
         pageSize={meta.pagination.pageSize}
-        onPageSizeChange={handlePageSizeChange}
-        onSearch={handleSearch}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
         currentPage={meta.pagination.page}
         total={meta.pagination.total}
         pageCount={meta.pagination.pageCount}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
         searchPlaceholder="Search name/branch"
       />
       <ModalDialog
@@ -275,21 +236,20 @@ export default function ServicePoint() {
         setOpen={(open) => {
           if (!open) {
             setModalOpen(false);
-            setSelectedServicePoint(undefined);
+            setSelectedLocation(undefined);
           }
         }}
       >
-        <ServicePointForm
+        <LocationForm
           setOpen={setModalOpen}
-          servicePoint={selectedServicePoint}
-          availableBranches={branchOptions}
+          location={selectedLocation}
         />
       </ModalDialog>
       <Alert
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
-        title="Delete Service Points"
-        description="Are you sure you want to delete the selected service points? This action cannot be undone."
+        title="Delete Locations"
+        description="Are you sure you want to delete the selected locations? This action cannot be undone."
         confirmLabel="Delete"
         cancelLabel="Cancel"
         onConfirm={handleConfirmDelete}

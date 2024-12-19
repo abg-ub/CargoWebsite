@@ -173,14 +173,14 @@ export interface Post {
   };
 }
 
-export interface ServicePoint {
-  id: string | number;
-  documentId: string;
+export interface Location {
+  id?: number;
+  documentId?: string;
   name: string;
   latitude: number;
   longitude: number;
   address: string;
-  branch: Branch;
+  branch?: Branch;
 }
 
 export interface Testimony {
@@ -243,8 +243,8 @@ export interface PageData {
 
 // Admin Panel
 export interface Customer {
-  id: string | number;
-  documentId: string;
+  id?: number;
+  documentId?: string;
   firstName: string;
   lastName: string;
   country: string;
@@ -255,8 +255,8 @@ export interface Customer {
 }
 
 export interface Branch {
-  id: string | number;
-  documentId: string;
+  id?: number;
+  documentId?: string;
   name: string;
   email: string;
   phone: string;
@@ -326,12 +326,12 @@ export interface ApiResponse<T> {
 
 // Add table-specific types
 export interface TableItem {
-  id: string | number;
+  id?: number;
   [key: string]: any;
 }
 
-// Add ServicePoint form errors
-export type ServicePointFormErrors = {
+// Add Location form errors
+export type LocationFormErrors = {
   apiError?: {
     message: string;
     type: string;
@@ -340,16 +340,79 @@ export type ServicePointFormErrors = {
   latitude?: FieldError;
   longitude?: FieldError;
   address?: FieldError;
-  branch?: FieldError;
 };
 
-// Add ServicePoint form data type
-export type ServicePointData = {
+// Add Location form data type
+export type LocationData = {
   id?: string | number;
   documentId?: string;
   name: string;
   latitude: number;
   longitude: number;
   address: string;
-  branchId: string;
 };
+
+export interface PackageType {
+  id?: number;
+  documentId?: string;
+  name: string;
+  maxWeight: number;
+}
+
+export interface Package {
+  id?: number;
+  documentId?: string;
+  shipment?: Shipment;
+  content: string;
+  netWeight: number;
+  packageCost: number;
+  packageStatus: string;
+  packageType: PackageType | null;
+  pricePerKg: number;
+  value: number;
+}
+
+export interface Address {
+  id?: number;
+  documentId?: string;
+  country: string;
+  state: string;
+  city: string;
+  zipCode: number;
+}
+
+export interface Shipment {
+  id?: number;
+  documentId?: string;
+  trackingNumber: string;
+  sender: Customer;
+  receiver: Customer;
+  packages: Package[];
+  originAddress: Address;
+  destinationAddress: Address;
+  branch: Branch;
+  shipmentStatus: string;
+  shippingDate: string;
+  deliveryDate: string;
+  shipmentType: string;
+  transferMode: string;
+  shipmentCost: number;
+}
+
+export interface Tracking {
+  id?: number;
+  documentId?: string;
+  shipment: Shipment;
+  shipmentStatus: string;
+  location: Location;
+  createdAt?: string;
+}
+
+export interface PaginationMeta {
+  pagination: {
+    page: number;
+    pageSize: number;
+    pageCount: number;
+    total: number;
+  };
+}

@@ -1,13 +1,12 @@
 import { useFetcher } from "@remix-run/react";
 import { z } from "zod";
-import ComboBox from "./combo-box";
 import { useState, useEffect } from "react";
-import { ServicePoint, ServicePointFormErrors } from "~/types";
+import { Location, LocationFormErrors } from "~/types";
 import { toast } from "react-toastify";
 
 // Define the Zod schema for form validation
-const servicePointSchema = z.object({
-  name: z.string().min(2, "Service point name is required"),
+const locationSchema = z.object({
+  name: z.string().min(2, "Location name is required"),
   latitude: z
     .string()
     .regex(/^-?([0-8]?[0-9]|90)(\.[0-9]{1,8})?$/, "Invalid latitude format"),
@@ -18,38 +17,30 @@ const servicePointSchema = z.object({
       "Invalid longitude format"
     ),
   address: z.string().min(5, "Address is required"),
-  branchId: z.string().min(1, "Branch is required"),
 });
 
-interface ServicePointFormProps {
-  servicePoint?: ServicePoint;
+interface LocationFormProps {
+  location?: Location;
   setOpen: (open: boolean) => void;
-  availableBranches: { id: number; name: string }[];
 }
 
-export default function ServicePointForm({
-  servicePoint,
+export default function LocationForm({
+  location,
   setOpen,
-  availableBranches,
-}: ServicePointFormProps) {
+}: LocationFormProps) {
   const fetcher = useFetcher<{
-    errors?: ServicePointFormErrors;
+    errors?: LocationFormErrors;
     success?: boolean;
   }>();
-  const isEditing = Boolean(servicePoint);
+  const isEditing = Boolean(location);
   const [hasToastShown, setHasToastShown] = useState(false);
 
   const isSubmitting =
     fetcher.state === "submitting" || fetcher.state === "loading";
 
   // Use fetcher data for errors if available, otherwise use local state
-  const [errors, setErrors] = useState<ServicePointFormErrors>(
+  const [errors, setErrors] = useState<LocationFormErrors>(
     fetcher.data?.errors || {}
-  );
-
-  // Add state to track selected branch
-  const [selectedBranchId, setSelectedBranchId] = useState<string>(
-    servicePoint?.branch?.id.toString() || ""
   );
 
   // Watch for successful submission and show toast
@@ -59,8 +50,8 @@ export default function ServicePointForm({
         setHasToastShown(true);
         toast.success(
           isEditing
-            ? "Service point updated successfully!"
-            : "Service point created successfully!"
+            ? "Location updated successfully!"
+            : "Location created successfully!"
         );
         setOpen(false);
       } else if (fetcher.data.errors) {
@@ -81,10 +72,10 @@ export default function ServicePointForm({
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = event.target;
-    const field = name as keyof typeof servicePointSchema.shape;
+    const field = name as keyof typeof locationSchema.shape;
 
     try {
-      servicePointSchema.pick({ [field]: true }).parse({ [field]: value });
+      locationSchema.pick({ [field]: true }).parse({ [field]: value });
       setErrors((prevErrors) => {
         const newErrors = { ...prevErrors };
         delete newErrors[field];
@@ -104,38 +95,8 @@ export default function ServicePointForm({
     }
   };
 
-  const handleBranchChange = (selectedValue: string) => {
-    // Find the branch object by name
-    const selectedBranch = availableBranches.find(
-      (branch) => branch.name === selectedValue
-    );
-
-    // Get the actual ID from the selected branch
-    const branchId = selectedBranch ? selectedBranch.id.toString() : "";
-
-    // Update the selected branch ID state
-    setSelectedBranchId(branchId);
-
-    // Validate and update errors
-    if (branchId) {
-      setErrors((prevErrors) => {
-        const newErrors = { ...prevErrors };
-        delete newErrors.branch;
-        return newErrors;
-      });
-    } else {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        branch: {
-          message: "Branch is required",
-          type: "custom",
-        },
-      }));
-    }
-  };
-
   const renderField = (
-    name: keyof ServicePointFormErrors,
+    name: keyof LocationFormErrors,
     label: string,
     type: string = "text",
     autoComplete?: string,
@@ -172,20 +133,16 @@ export default function ServicePointForm({
 
     const formData = new FormData(event.currentTarget);
 
-    // Explicitly set the branchId in formData
-    formData.set("branchId", selectedBranchId);
-
     const formValues = {
       name: formData.get("name") as string,
       latitude: formData.get("latitude") as string,
       longitude: formData.get("longitude") as string,
       address: formData.get("address") as string,
-      branchId: selectedBranchId, // Use the selected branch ID from state
     };
 
     try {
       // Validate all fields before submission
-      servicePointSchema.parse(formValues);
+      locationSchema.parse(formValues);
 
       // If validation passes, submit the form
       fetcher.submit(formData, {
@@ -193,20 +150,13 @@ export default function ServicePointForm({
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const newErrors: ServicePointFormErrors = {};
+        const newErrors: LocationFormErrors = {};
         error.issues.forEach((issue) => {
-          const field = issue.path[0] as keyof ServicePointFormErrors;
-          if (field === "branchId") {
-            newErrors.branch = {
-              message: "Branch is required",
-              type: issue.code,
-            };
-          } else {
-            newErrors[field] = {
-              message: issue.message,
-              type: issue.code,
-            };
-          }
+          const field = issue.path[0] as keyof LocationFormErrors;
+          newErrors[field] = {
+            message: issue.message,
+            type: issue.code,
+          };
         });
         setErrors(newErrors);
         toast.error("Please fix the form errors before submitting");
@@ -216,30 +166,30 @@ export default function ServicePointForm({
 
   return (
     <fetcher.Form method={isEditing ? "put" : "post"} onSubmit={handleSubmit}>
-      {servicePoint?.id && (
-        <input type="hidden" name="id" value={servicePoint.id} />
+      {location?.id && (
+        <input type="hidden" name="id" value={location.id} />
       )}
-      {servicePoint?.documentId && (
+      {location?.documentId && (
         <input
           type="hidden"
           name="documentId"
-          value={servicePoint.documentId}
+          value={location.documentId}
         />
       )}
 
       <div className="space-y-12">
         <div className="border-b border-gray-900/10 pb-12">
           <h2 className="text-base font-semibold leading-7 text-gray-900">
-            {isEditing ? "Edit Service Point" : "Service Point Information"}
+            {isEditing ? "Edit Location" : "Location Information"}
           </h2>
 
           <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
             {renderField(
               "name",
-              "Service point name",
+              "Location name",
               "text",
               "organization",
-              servicePoint?.name
+              location?.name
             )}
 
             {renderField(
@@ -247,7 +197,7 @@ export default function ServicePointForm({
               "Latitude",
               "text",
               "latitude",
-              servicePoint?.latitude
+              location?.latitude?.toString()
             )}
 
             {renderField(
@@ -255,19 +205,8 @@ export default function ServicePointForm({
               "Longitude",
               "text",
               "longitude",
-              servicePoint?.longitude
+              location?.longitude?.toString()
             )}
-
-            <div className="sm:col-span-3">
-              <ComboBox
-                label="Branch"
-                items={availableBranches}
-                name="branch"
-                onChange={handleBranchChange}
-                defaultValue={servicePoint?.branch?.name}
-                error={errors.branch?.message}
-              />
-            </div>
 
             <div className="col-span-full">
               <label
@@ -283,7 +222,7 @@ export default function ServicePointForm({
                   rows={4}
                   autoComplete="street-address"
                   onChange={handleInputChange}
-                  defaultValue={servicePoint?.address}
+                  defaultValue={location?.address}
                   className={`block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ${
                     errors.address ? "ring-red-500" : "ring-gray-300"
                   } placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6`}

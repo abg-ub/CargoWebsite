@@ -10,7 +10,7 @@ import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { useState } from "react";
 
 interface ComboBoxItem {
-  id: number | string;
+  id?: number | string;
   name: string;
 }
 
@@ -66,7 +66,7 @@ export default function ComboBox({
           } focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6`}
           onChange={(event) => setQuery(event.target.value)}
           onBlur={() => setQuery("")}
-          displayValue={(item: any) => item?.name}
+          displayValue={(item: ComboBoxItem) => item?.name}
         />
         <ComboboxButton className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
           <ChevronUpDownIcon

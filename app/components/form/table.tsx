@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { cn } from "~/utils/utils";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import { useDebouncedCallback } from "use-debounce";
 import { TableItem } from "~/types";
 import Pagination from "../pagination";
+import { useNavigate, useSearchParams } from "@remix-run/react";
 
 // Add TypeScript interface for the props
 interface TableProps<T extends TableItem> {
@@ -14,14 +15,14 @@ interface TableProps<T extends TableItem> {
   onButtonClick: () => void;
   data: T[];
   pageSize: number;
-  onPageSizeChange: (size: number) => void;
-  onSearch: (query: string) => void;
-  onEdit: (item: T) => void;
-  onDelete: (ids: (string | number)[]) => void;
   currentPage: number;
   total: number;
   pageCount: number;
+  onEdit: (item: T) => void;
+  onDelete: (ids: (string | number)[]) => void;
   searchPlaceholder?: string;
+  isLoading?: boolean;
+  loadingMessage?: string;
 }
 
 export default function Table<T extends TableItem>({
@@ -31,15 +32,18 @@ export default function Table<T extends TableItem>({
   onButtonClick,
   data,
   pageSize,
-  onPageSizeChange,
-  onSearch,
-  onEdit,
-  onDelete,
   currentPage,
   total,
   pageCount,
+  onEdit,
+  onDelete,
   searchPlaceholder = "Search...",
+  isLoading = false,
+  loadingMessage = "Loading...",
 }: TableProps<T>) {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState("");
   const checkbox = useRef<HTMLInputElement>(null);
   const [checked, setChecked] = useState(false);
   const [indeterminate, setIndeterminate] = useState(false);
@@ -48,34 +52,36 @@ export default function Table<T extends TableItem>({
     key: string;
     direction: "asc" | "desc" | null;
   }>({ key: "id", direction: null });
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // Debounce the search to avoid too many API calls
-  const debouncedSearch = useDebouncedCallback((value: string) => {
-    onSearch(value);
-  }, 300); // 300ms delay
 
   // Get columns from the first data item's keys, or use empty array if no data
-  const columns = data.length > 0 ? Object.keys(data[0]) : [];
+  const columns = useMemo(
+    () => (data.length > 0 ? Object.keys(data[0]) : []),
+    [data]
+  );
 
   // Fix the sorting function to handle string and number comparisons properly
-  const sortedData = [...data].sort((a, b) => {
-    if (sortConfig.direction === null) return 0;
-    const aValue = a[sortConfig.key as keyof T];
-    const bValue = b[sortConfig.key as keyof T];
+  const sortedData = useMemo(
+    () =>
+      [...data].sort((a, b) => {
+        if (sortConfig.direction === null) return 0;
+        const aValue = a[sortConfig.key as keyof T];
+        const bValue = b[sortConfig.key as keyof T];
 
-    if (typeof aValue === "number" && typeof bValue === "number") {
-      return sortConfig.direction === "asc" ? aValue - bValue : bValue - aValue;
-    }
+        if (typeof aValue === "number" && typeof bValue === "number") {
+          return sortConfig.direction === "asc"
+            ? aValue - bValue
+            : bValue - aValue;
+        }
 
-    const aString = String(aValue).toLowerCase();
-    const bString = String(bValue).toLowerCase();
+        const aString = String(aValue).toLowerCase();
+        const bString = String(bValue).toLowerCase();
 
-    if (sortConfig.direction === "asc") {
-      return aString.localeCompare(bString);
-    }
-    return bString.localeCompare(aString);
-  });
+        return sortConfig.direction === "asc"
+          ? aString.localeCompare(bString)
+          : bString.localeCompare(aString);
+      }),
+    [data, sortConfig]
+  );
 
   const requestSort = (key: string) => {
     setSortConfig((current) => {
@@ -115,27 +121,20 @@ export default function Table<T extends TableItem>({
     setSelectedPeople([]);
   }, [data]);
 
-  const handleDeleteClick = () => {
-    // Add logging to debug selected items
-    console.log("Selected people:", selectedPeople);
+  const handleDeleteClick = useCallback(() => {
+    if (selectedPeople.length === 0) return;
 
-    // Filter out any null or undefined IDs and get unique IDs
-    const validIds = selectedPeople
-      .map((person) => person.id)
-      .filter((id) => id != null);
+    const validIds = Array.from(
+      new Set(
+        selectedPeople
+          .map((person) => person.id)
+          .filter((id): id is string | number => id != null)
+      )
+    );
 
-    const uniqueIds = Array.from(new Set(validIds));
-
-    console.log("Unique IDs to delete:", uniqueIds);
-
-    if (uniqueIds.length === 0) {
-      console.error("No valid IDs selected for deletion");
-      return;
-    }
-
-    onDelete(uniqueIds);
+    onDelete(validIds);
     setSelectedPeople([]);
-  };
+  }, [selectedPeople, onDelete]);
 
   // Update the checkbox change handler
   const handleCheckboxChange = (
@@ -153,6 +152,44 @@ export default function Table<T extends TableItem>({
         : selectedPeople.filter((p) => p.id !== item.id)
     );
   };
+
+  // Move search and pagination logic inside component
+  const handleSearch = useDebouncedCallback((query: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", "1");
+
+    if (query.trim()) {
+      params.set("search", query.trim());
+    } else {
+      params.delete("search");
+    }
+
+    navigate(`?${params.toString()}`, { replace: true });
+  }, 300);
+
+  const handlePageSizeChange = (newSize: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("pageSize", newSize.toString());
+    params.set("page", "1");
+    navigate(`?${params.toString()}`);
+  };
+
+  // Update search input handler
+  const handleSearchInput = (value: string) => {
+    setSearchQuery(value);
+    handleSearch(value);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+          <p className="mt-2 text-sm text-gray-500">{loadingMessage}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
@@ -174,7 +211,7 @@ export default function Table<T extends TableItem>({
             id="items"
             name="items"
             value={pageSize}
-            onChange={(e) => onPageSizeChange(Number(e.target.value))}
+            onChange={(e) => handlePageSizeChange(Number(e.target.value))}
             className="mt-2 sm:mr-2 sm:mt-0 rounded-md border-0 py-1.5 pl-3 pr-12 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-primary sm:text-sm sm:leading-6"
           >
             <option value="10">10</option>
@@ -191,14 +228,11 @@ export default function Table<T extends TableItem>({
             />
           </div>
           <input
+            id="search"
             type="search"
             placeholder={searchPlaceholder}
             value={searchQuery}
-            onChange={(e) => {
-              const value = e.target.value;
-              setSearchQuery(value);
-              debouncedSearch(value);
-            }}
+            onChange={(e) => handleSearchInput(e.target.value)}
             className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
           />
         </div>
@@ -233,6 +267,7 @@ export default function Table<T extends TableItem>({
                     <tr>
                       <th scope="col" className="relative px-7 sm:w-12 sm:px-6">
                         <input
+                          id="select-all"
                           type="checkbox"
                           className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                           ref={checkbox}
@@ -298,6 +333,7 @@ export default function Table<T extends TableItem>({
                             <div className="absolute inset-y-0 left-0 w-0.5 bg-primary" />
                           )}
                           <input
+                            id={`select-${item.id}`}
                             type="checkbox"
                             className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                             value={item.email}

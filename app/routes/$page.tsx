@@ -19,7 +19,6 @@ import Features2 from "~/components/features2";
 import Stats from "~/components/stats";
 import Features3 from "~/components/features3";
 import Features4 from "~/components/features4";
-import Blogs from "~/components/blogs";
 
 const renderBlock = (block: any, baseUrl: string) => {
   switch (block.__component) {
@@ -54,7 +53,7 @@ const renderBlock = (block: any, baseUrl: string) => {
     case "layout.features3":
       return <Features3 {...block} baseUrl={baseUrl} />;
     case "layout.features4":
-      return <Features4 {...block} baseUrl={baseUrl} />
+      return <Features4 {...block} baseUrl={baseUrl} />;
     default:
       return null;
   }
@@ -83,6 +82,5 @@ export default function DynamicPage() {
         <section key={index}>{renderBlock(block, data.ENV.STRAPI_URL)}</section>
       ))}
     </main>
-
   );
 }

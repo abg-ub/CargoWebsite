@@ -8,22 +8,35 @@ const baseUrl = process.env.STRAPI_URL;
 async function fetchData(url: string, request?: Request) {
   const headers: HeadersInit = {};
 
-  if (request) {
-    const session = await getSession(request.headers.get("Cookie"));
-    const jwt = session.get("jwt");
-    if (!jwt) {
-      throw new Error("Authentication required");
+  try {
+    if (request) {
+      const session = await getSession(request.headers.get("Cookie"));
+      const jwt = session.get("jwt");
+
+      if (!jwt) {
+        throw new Error("Authentication required");
+      }
+      headers.Authorization = `Bearer ${jwt}`;
     }
-    headers.Authorization = `Bearer ${jwt}`;
-  }
 
-  const response = await fetch(url, { headers });
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-  const data = await response.json();
-  return request ? data : flattenStrapiResponse(data);
+    const data = await response.json();
+    return request ? data : flattenStrapiResponse(data);
+  } catch (error) {
+    // Enhance error message based on error type
+    if (error instanceof SyntaxError) {
+      throw new Error("Failed to parse API response");
+    }
+    if (error instanceof TypeError) {
+      throw new Error("Network error occurred");
+    }
+    // Re-throw other errors
+    throw error;
+  }
 }
 
 export async function getGlobalData() {
@@ -32,6 +45,7 @@ export async function getGlobalData() {
       header: { populate: ["logoLink.image", "navItems", "buttonLink"] },
       footer: { populate: ["navItems", "socialLinks.image"] },
     },
+    
   });
   const url = `${baseUrl}/api/global?${query}`;
   return await fetchData(url);
@@ -123,14 +137,14 @@ export async function getPostByTitle(title: string) {
   return await fetchData(url);
 }
 
-export async function getServicePoints(
+export async function getLocations(
   request: Request,
   page = 1,
   pageSize = 10,
   searchQuery = ""
 ) {
   const query = qs.stringify({
-    populate: ["branch"],
+    populate: "*",
     pagination: {
       page,
       pageSize,
@@ -139,14 +153,13 @@ export async function getServicePoints(
       $or: searchQuery
         ? [
             { name: { $containsi: searchQuery } },
-            { branch: { name: { $containsi: searchQuery } } },
             // Add other searchable fields as needed
           ]
         : undefined,
     },
   });
 
-  const url = `${baseUrl}/api/service-points?${query}`;
+  const url = `${baseUrl}/api/locations?${query}`;
   return await fetchData(url, request);
 }
 
@@ -215,4 +228,155 @@ export async function isTokenValidWithStrapi(jwt: string) {
   });
 
   return response.ok;
+}
+
+export async function getPackageTypes(
+  request: Request,
+  page = 1,
+  pageSize = 10,
+  searchQuery = ""
+) {
+  const query = qs.stringify({
+    populate: "*",
+    pagination: {
+      page,
+      pageSize,
+    },
+    filters: {
+      $or: searchQuery ? [{ name: { $containsi: searchQuery } }] : undefined,
+    },
+  });
+
+  const url = `${baseUrl}/api/package-types?${query}`;
+  return await fetchData(url, request);
+}
+
+export async function getPackages(
+  request: Request,
+  page = 1,
+  pageSize = 10,
+  searchQuery = ""
+) {
+  const query = qs.stringify({
+    populate: ["packageType", "shipment"],
+    pagination: {
+      page,
+      pageSize,
+    },
+    filters: {
+      $or: searchQuery
+        ? [
+            { content: { $containsi: searchQuery } },
+            { packageStatus: { $containsi: searchQuery } },
+          ]
+        : undefined,
+    },
+  });
+
+  const url = `${baseUrl}/api/packages?${query}`;
+  return await fetchData(url, request);
+}
+
+export async function getShipments(
+  request: Request,
+  page = 1,
+  pageSize = 10,
+  searchQuery = ""
+) {
+  const query = qs.stringify({
+    populate: [
+      "packages",
+      "packages.packageType",
+      "sender",
+      "receiver",
+      "originAddress",
+      "destinationAddress",
+      "branch",
+    ],
+    pagination: {
+      page,
+      pageSize,
+    },
+    filters: {
+      $or: searchQuery
+        ? [{ trackingNumber: { $containsi: searchQuery } }]
+        : undefined,
+    },
+  });
+
+  const url = `${baseUrl}/api/shipments?${query}`;
+  return await fetchData(url, request);
+}
+
+export async function getAddresses(
+  request: Request,
+  page = 1,
+  pageSize = 10,
+  searchQuery = ""
+) {
+  const query = qs.stringify({
+    populate: "*",
+    pagination: {
+      page,
+      pageSize,
+    },
+    filters: {
+      $or: searchQuery
+        ? [
+            { country: { $containsi: searchQuery } },
+            { city: { $containsi: searchQuery } },
+            { state: { $containsi: searchQuery } },
+          ]
+        : undefined,
+    },
+  });
+
+  const url = `${baseUrl}/api/addresses?${query}`;
+  return await fetchData(url, request);
+}
+
+export async function getTrackings(
+  request: Request,
+  page = 1,
+  pageSize = 10,
+  searchQuery = ""
+) {
+  const query = qs.stringify({
+    populate: [
+      "shipment",
+      "shipment.packages",
+      "shipment.packages.packageType",
+      "shipment.sender",
+      "shipment.receiver",
+      "shipment.originAddress",
+      "shipment.destinationAddress",
+      "shipment.branch",
+      "location",
+    ],
+    pagination: {
+      page,
+      pageSize,
+    },
+    filters: searchQuery ? {
+      $or: [
+        { shipmentStatus: { $containsi: searchQuery } },
+        {
+          location: {
+            name: { $containsi: searchQuery }
+          }
+        },
+        {
+          shipment: {
+            trackingNumber: { $containsi: searchQuery }
+          }
+        }
+      ]
+    } : undefined,
+    sort: ['createdAt:desc'],
+  }, {
+    encodeValuesOnly: true
+  });
+
+  const url = `${baseUrl}/api/trackings?${query}`;
+  return await fetchData(url, request);
 }
